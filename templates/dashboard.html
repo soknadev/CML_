@@ -1,0 +1,1752 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - CMS{% endblock %}
+
+{% block content %}
+<style>
+    /* ═══════════════════════════════════════════════════════════
+       FONTS - INTER (English) + KH MER OS BATTAMBANG (Khmer Fallback)
+       ═══════════════════════════════════════════════════════════ */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Battambang:wght@400;700&display=swap');
+
+    :root {
+        --dash-blue: #2563eb;
+        --dash-blue-light: #3b82f6;
+        --dash-blue-dark: #1d4ed8;
+        --dash-dark: #1e293b;
+        --dash-purple: #7c3aed;
+        --dash-green: #10b981;
+        --dash-orange: #f59e0b;
+        --dash-red: #ef4444;
+        --dash-teal: #14b8a6;
+        --dash-bg: #f1f5f9;
+        --dash-card: #ffffff;
+        --dash-border: #e2e8f0;
+        --dash-text: #0f172a;
+        --dash-muted: #64748b;
+        --dash-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+        --dash-shadow-hover: 0 10px 40px rgba(0, 0, 0, 0.08);
+        --dash-radius: 12px;
+        --dash-radius-sm: 8px;
+        --khmer-font: 'Inter', 'Khmer OS Battambang', 'Battambang', 'Kantumruy Pro', system-ui, -apple-system, sans-serif;
+        --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        background: var(--dash-bg);
+        font-family: var(--khmer-font);
+        color: var(--dash-text);
+    }
+
+    h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, select, textarea, th, td {
+        font-family: inherit;
+    }
+
+    .dash-wrap {
+        width: 100%;
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 24px 32px 40px;
+    }
+
+        /* ─── Premium Scrollbar Styling ─── */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+        transition: background 0.3s ease;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+        background-clip: content-box;
+    }
+    ::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+
+    /* ─── Specific Scrollbars for Dashboard Cards ─── */
+    .dash-card-body {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+    }
+    .dash-card-body:hover {
+        scrollbar-color: #94a3b8 transparent;
+    }
+    .dash-card-body::-webkit-scrollbar {
+        width: 6px;
+    }
+    .dash-card-body::-webkit-scrollbar-track {
+        background: transparent;
+        margin: 4px 0;
+    }
+    .dash-card-body::-webkit-scrollbar-thumb {
+        background: transparent;
+        border-radius: 10px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+        transition: all 0.3s ease;
+    }
+    .dash-card-body:hover::-webkit-scrollbar-thumb {
+        background: #94a3b8;
+        border: 2px solid transparent;
+        background-clip: content-box;
+    }
+
+    /* Higher quality scrollbar for very tall lists (e.g. Team Members) */
+    .dash-card-body[style*="max-height"] {
+        scrollbar-width: thin;
+        scrollbar-color: #94a3b8 #f1f5f9;
+    }
+    .dash-card-body[style*="max-height"]::-webkit-scrollbar {
+        width: 6px;
+    }
+    .dash-card-body[style*="max-height"]::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+        margin: 8px 0;
+    }
+    .dash-card-body[style*="max-height"]::-webkit-scrollbar-thumb {
+        background: #94a3b8;
+        border-radius: 10px;
+        border: 2px solid #f1f5f9;
+    }
+    .dash-card-body[style*="max-height"]::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
+        border-color: #e2e8f0;
+    }
+
+    /* ─── Welcome ─── */
+    .dash-welcome {
+        margin-bottom: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .dash-welcome-left h2 {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--dash-text);
+        margin: 0 0 2px;
+        letter-spacing: -0.5px;
+    }
+    .dash-welcome-left h2 .wave {
+        display: inline-block;
+        animation: wave 2.5s ease-in-out infinite;
+        transform-origin: 70% 70%;
+    }
+    @keyframes wave {
+        0% { transform: rotate(0deg); }
+        10% { transform: rotate(14deg); }
+        20% { transform: rotate(-8deg); }
+        30% { transform: rotate(14deg); }
+        40% { transform: rotate(-4deg); }
+        50% { transform: rotate(10deg); }
+        60% { transform: rotate(0deg); }
+        100% { transform: rotate(0deg); }
+    }
+    .dash-welcome-left p {
+        margin: 0;
+        color: var(--dash-muted);
+        font-size: 0.95rem;
+    }
+    .dash-welcome-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .date-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--dash-card);
+        padding: 8px 16px;
+        border-radius: var(--dash-radius-sm);
+        border: 1px solid var(--dash-border);
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--dash-muted);
+        box-shadow: var(--dash-shadow);
+    }
+    .date-badge i {
+        color: var(--dash-blue);
+        font-size: 0.9rem;
+    }
+
+    /* ─── Stat Cards ─── */
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+    .stat-card {
+        background: var(--dash-card);
+        border: 1px solid var(--dash-border);
+        border-radius: var(--dash-radius);
+        padding: 20px 18px 18px;
+        box-shadow: var(--dash-shadow);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+    }
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--dash-shadow-hover);
+    }
+    .stat-card .stat-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .stat-card .stat-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        color: #fff;
+        flex-shrink: 0;
+    }
+    .stat-card .stat-icon.purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    .stat-card .stat-icon.blue   { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .stat-card .stat-icon.green  { background: linear-gradient(135deg, #34d399, #10b981); }
+    .stat-card .stat-icon.orange { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+    .stat-card .stat-icon.red    { background: linear-gradient(135deg, #f87171, #ef4444); }
+    .stat-card .stat-icon.teal   { background: linear-gradient(135deg, #2dd4bf, #14b8a6); }
+    .stat-card .stat-delta {
+        font-size: 0.65rem;
+        font-weight: 600;
+        padding: 2px 10px;
+        border-radius: 20px;
+        background: #f1f5f9;
+        color: var(--dash-muted);
+        white-space: nowrap;
+    }
+    .stat-card .stat-delta.up {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    .stat-card .stat-delta.down {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    .stat-card .stat-label {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--dash-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+    }
+    .stat-card .stat-value {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--dash-text);
+        line-height: 1.15;
+        letter-spacing: -0.5px;
+    }
+    .stat-card .stat-sub {
+        font-size: 0.7rem;
+        color: var(--dash-muted);
+        margin-top: 4px;
+    }
+
+    /* ─── Cards ─── */
+    .dash-card {
+        background: var(--dash-card);
+        border: 1px solid var(--dash-border);
+        border-radius: var(--dash-radius);
+        box-shadow: var(--dash-shadow);
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        transition: var(--transition);
+    }
+    .dash-card:hover {
+        box-shadow: var(--dash-shadow-hover);
+    }
+    .dash-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--dash-border);
+        gap: 12px;
+        flex-wrap: wrap;
+        background: #fafbfc;
+    }
+    .dash-card-header h6 {
+        margin: 0;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--dash-text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .dash-card-header h6 i {
+        color: var(--dash-muted);
+        font-size: 0.9rem;
+    }
+    .dash-card-body {
+        padding: 16px 20px 20px;
+        flex: 1;
+    }
+    .dash-card-body.p-0 {
+        padding: 0;
+    }
+    .dash-card-link {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--dash-blue);
+        text-decoration: none;
+        padding: 4px 14px;
+        border-radius: 20px;
+        background: #eef2ff;
+        transition: var(--transition);
+        cursor: pointer;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .dash-card-link:hover {
+        background: #dbeafe;
+        color: var(--dash-blue-dark);
+        transform: scale(1.02);
+    }
+
+    /* ─── Chart area ─── */
+    .chart-area {
+        position: relative;
+        height: 250px;
+        width: 100%;
+    }
+    .chart-area canvas {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    /* ─── Specimen type list ─── */
+    .type-legend {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .type-legend li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        gap: 10px;
+        padding: 4px 0;
+    }
+    .type-legend .type-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+    }
+    .type-legend .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    .type-legend .type-name {
+        color: var(--dash-text);
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .type-legend .type-count {
+        color: var(--dash-muted);
+        font-weight: 600;
+        white-space: nowrap;
+        font-size: 0.75rem;
+        background: #f1f5f9;
+        padding: 1px 10px;
+        border-radius: 12px;
+    }
+
+    .donut-wrap {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
+    .donut-canvas-box {
+        position: relative;
+        width: 160px;
+        height: 160px;
+        flex-shrink: 0;
+    }
+    .donut-center {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+    }
+    .donut-center .num {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--dash-text);
+        line-height: 1;
+    }
+    .donut-center .lbl {
+        font-size: 0.65rem;
+        color: var(--dash-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .donut-legend {
+        flex: 1;
+        min-width: 140px;
+    }
+
+    /* ─── Tables ─── */
+    .dash-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+    }
+    .dash-table thead th {
+        text-align: left;
+        padding: 10px 14px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--dash-muted);
+        border-bottom: 1px solid var(--dash-border);
+        white-space: nowrap;
+        background: #f8fafc;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+    .dash-table tbody td {
+        padding: 10px 14px;
+        border-bottom: 1px solid #f1f5f9;
+        color: var(--dash-text);
+        vertical-align: middle;
+    }
+    .dash-table tbody tr:last-child td { border-bottom: none; }
+    .dash-table tbody tr:hover td { background: #f8fafc; }
+    .dash-table tfoot td {
+        padding: 10px 14px;
+        font-weight: 700;
+        background: #f8fafc;
+        border-top: 2px solid var(--dash-border);
+        color: var(--dash-text);
+    }
+
+    /* ─── Specimen Pills ─── */
+    .specimen-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 10px;
+        border-radius: 6px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        margin: 1px 2px;
+        white-space: nowrap;
+    }
+    .pill-blood   { background: #fee2e2; color: #991b1b; }
+    .pill-serum   { background: #ffedd5; color: #9a3412; }
+    .pill-urine   { background: #d1fae5; color: #065f46; }
+    .pill-swab    { background: #dbeafe; color: #1e40af; }
+    .pill-plasma  { background: #ede9fe; color: #5b21b6; }
+    .pill-stool   { background: #fef3c7; color: #78350f; }
+    .pill-other   { background: #f1f5f9; color: #475569; }
+
+    .duration-badge {
+        background: #e0f2fe;
+        color: #0369a1;
+        padding: 2px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    /* ─── Collector Performance ─── */
+    .collector-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .collector-name {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--dash-text);
+    }
+    .collector-self-row {
+        background: linear-gradient(90deg, #eff6ff, transparent) !important;
+        border-left: 3px solid var(--dash-blue);
+    }
+    .collector-self-row:hover td {
+        background: #dbeafe !important;
+    }
+    .collector-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #e2e8f0;
+        flex-shrink: 0;
+    }
+    .collector-avatar-ph {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #93c5fd, #3b82f6);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+    .you-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: var(--dash-blue);
+        color: white;
+        font-size: 0.55rem;
+        font-weight: 700;
+        padding: 1px 10px;
+        border-radius: 20px;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+    .you-badge i {
+        font-size: 0.5rem;
+    }
+    .stat-number {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--dash-text);
+    }
+    .collector-self-row .stat-number {
+        color: var(--dash-blue);
+    }
+
+    /* ─── Team Members (Production-Ready) ─── */
+    .team-stats-bar {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 8px 4px 14px 4px;
+        border-bottom: 1px solid var(--dash-border);
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+    .team-stat-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: var(--dash-muted);
+    }
+    .team-stat-item .dot-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    .team-stat-item .dot-indicator.online {
+        background: #10b981;
+    }
+    .team-stat-item .dot-indicator.offline {
+        background: #94a3b8;
+    }
+    .team-stat-item .dot-indicator.admin {
+        background: #8b5cf6;
+    }
+    .team-stat-item .count-num {
+        font-weight: 700;
+        color: var(--dash-text);
+        font-size: 0.8rem;
+    }
+    .team-stat-item.total {
+        margin-left: auto;
+        background: #f1f5f9;
+        padding: 2px 12px;
+        border-radius: 20px;
+    }
+    .team-stat-item.total .count-num {
+        color: var(--dash-blue);
+    }
+
+    .member-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 12px;
+        border-radius: var(--dash-radius-sm);
+        transition: var(--transition);
+        margin: 2px 0;
+        border-left: 3px solid transparent;
+        background: #ffffff;
+    }
+    .member-item:hover {
+        background: #f8fafc;
+        transform: translateX(4px);
+    }
+    .member-item.self {
+        background: linear-gradient(135deg, #eff6ff 0%, #f8faff 100%);
+        border-left-color: var(--dash-blue);
+    }
+    .member-item.self .member-name {
+        color: var(--dash-blue);
+        font-weight: 700;
+    }
+
+    .member-avatar-wrapper {
+        position: relative;
+        flex-shrink: 0;
+    }
+    .member-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #e2e8f0;
+        display: block;
+        border: 2px solid transparent;
+        transition: border-color 0.2s;
+    }
+    .member-avatar-ph {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+        color: #fff;
+        background: linear-gradient(135deg, #93c5fd, #3b82f6);
+        border: 2px solid transparent;
+    }
+    .member-avatar-ph.self-avatar {
+        background: linear-gradient(135deg, var(--dash-blue), var(--dash-blue-dark));
+        border-color: var(--dash-blue);
+    }
+    .member-avatar-img.self-avatar-img {
+        border-color: var(--dash-blue) !important;
+    }
+    .member-status-dot {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        display: inline-block;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    }
+    .member-status-dot.online {
+        background: #10b981;
+        animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.2); opacity: 0.7; }
+    }
+
+    .member-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .member-name-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .member-name {
+        font-weight: 600;
+        font-size: 0.82rem;
+        color: var(--dash-text);
+        line-height: 1.2;
+    }
+    .member-badges {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-wrap: wrap;
+    }
+    .member-badge {
+        font-size: 0.5rem;
+        font-weight: 700;
+        padding: 1px 8px;
+        border-radius: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+        line-height: 1.5;
+    }
+    .member-badge.admin {
+        background: #ede9fe;
+        color: #5b21b6;
+    }
+    .member-badge.you {
+        background: var(--dash-blue);
+        color: white;
+        padding: 1px 10px;
+    }
+    .member-badge.you i {
+        font-size: 0.45rem;
+        margin-right: 2px;
+    }
+    .member-status-text {
+        font-size: 0.6rem;
+        font-weight: 600;
+        padding: 2px 10px;
+        border-radius: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+    .member-status-text.online {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    .member-status-text.offline {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+    .member-status-text.inactive {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    .member-status-text .mini-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    .member-status-text .mini-dot.online {
+        background: #10b981;
+        animation: pulse-dot 2s ease-in-out infinite;
+    }
+    .member-status-text .mini-dot.offline {
+        background: #94a3b8;
+    }
+    .member-status-text .mini-dot.inactive {
+        background: #ef4444;
+    }
+
+    .member-more {
+        text-align: center;
+        padding: 10px 0 2px 0;
+        border-top: 1px solid var(--dash-border);
+        margin-top: 8px;
+    }
+    .member-more a {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--dash-blue);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 16px;
+        border-radius: 20px;
+        background: #eef2ff;
+        transition: var(--transition);
+    }
+    .member-more a:hover {
+        background: #dbeafe;
+        transform: scale(1.03);
+    }
+    .member-more a i {
+        font-size: 0.6rem;
+        transition: transform 0.2s;
+    }
+    .member-more a:hover i {
+        transform: translateX(3px);
+    }
+
+    /* ─── Empty State ─── */
+    .empty-mini {
+        text-align: center;
+        padding: 32px 16px;
+        color: var(--dash-muted);
+        font-size: 0.85rem;
+    }
+    .empty-mini .ei {
+        font-size: 2rem;
+        display: block;
+        margin-bottom: 8px;
+        opacity: 0.5;
+    }
+    .empty-mini .empty-action {
+        margin-top: 12px;
+    }
+    .empty-mini .empty-action a {
+        display: inline-block;
+        padding: 6px 20px;
+        background: var(--dash-blue);
+        color: white;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.8rem;
+        transition: var(--transition);
+    }
+    .empty-mini .empty-action a:hover {
+        background: var(--dash-blue-dark);
+        transform: scale(1.02);
+    }
+
+    .view-all-link {
+        display: block;
+        text-align: center;
+        padding: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--dash-blue);
+        text-decoration: none;
+        border-top: 1px solid var(--dash-border);
+        transition: var(--transition);
+        cursor: pointer;
+    }
+    .view-all-link:hover {
+        background: #f8fafc;
+        color: var(--dash-blue-dark);
+    }
+
+    /* ─── Quick Actions ─── */
+    .quick-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 14px;
+    }
+    .quick-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 20px 14px;
+        background: var(--dash-card);
+        border: 1px solid var(--dash-border);
+        border-radius: var(--dash-radius-sm);
+        text-decoration: none;
+        color: var(--dash-text);
+        transition: var(--transition);
+        box-shadow: var(--dash-shadow);
+        text-align: center;
+    }
+    .quick-btn:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--dash-shadow-hover);
+        border-color: var(--dash-blue);
+        color: var(--dash-text);
+    }
+    .quick-btn .qa-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: #fff;
+        transition: var(--transition);
+    }
+    .quick-btn:hover .qa-icon {
+        transform: scale(1.05);
+    }
+    .quick-btn .qa-icon.blue   { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .quick-btn .qa-icon.cyan   { background: linear-gradient(135deg, #22d3ee, #06b6d4); }
+    .quick-btn .qa-icon.green  { background: linear-gradient(135deg, #34d399, #10b981); }
+    .quick-btn .qa-icon.purple { background: linear-gradient(135deg, #a78bfa, #7c3aed); }
+    .quick-btn .qa-icon.orange { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+    .quick-btn .qa-title {
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: var(--dash-text);
+    }
+    .quick-btn .qa-sub {
+        font-size: 0.7rem;
+        color: var(--dash-muted);
+        font-weight: 500;
+    }
+
+    .section-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--dash-text);
+        margin: 0 0 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* ─── Layout ─── */
+    .row-gap { --bs-gutter-y: 1.2rem; }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 1200px) {
+        .stat-grid { grid-template-columns: repeat(3, 1fr); }
+        .quick-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 992px) {
+        .dash-wrap { padding: 16px 20px 32px; }
+        .dash-welcome { flex-direction: column; align-items: flex-start; }
+        .dash-welcome-left h2 { font-size: 1.5rem; }
+    }
+    @media (max-width: 768px) {
+        .dash-wrap { padding: 12px 16px 28px; }
+        .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .stat-card .stat-value { font-size: 1.3rem; }
+        .stat-card { padding: 16px 14px; }
+        .quick-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .donut-wrap { flex-direction: column; align-items: center; }
+        .chart-area { height: 180px; }
+        .dash-card-header { padding: 12px 16px; }
+        .dash-card-body { padding: 12px 16px; }
+        .team-stats-bar { gap: 8px; }
+        .team-stat-item { font-size: 0.6rem; }
+        .member-item { padding: 6px 10px; }
+        .member-avatar { width: 32px; height: 32px; }
+        .member-avatar-ph { width: 32px; height: 32px; font-size: 0.7rem; }
+        .member-status-dot { width: 9px; height: 9px; }
+        .member-name { font-size: 0.75rem; }
+        .member-status-text { font-size: 0.5rem; padding: 1px 6px; }
+        .member-badge { font-size: 0.45rem; padding: 1px 6px; }
+        .date-badge { font-size: 0.7rem; padding: 6px 12px; }
+    }
+    @media (max-width: 480px) {
+        .stat-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+        .stat-card .stat-value { font-size: 1.1rem; }
+        .stat-card .stat-icon { width: 36px; height: 36px; font-size: 0.9rem; }
+        .quick-grid { grid-template-columns: 1fr 1fr; }
+        .quick-btn { padding: 14px 10px; }
+        .quick-btn .qa-icon { width: 38px; height: 38px; font-size: 1rem; }
+        .quick-btn .qa-title { font-size: 0.75rem; }
+        .quick-btn .qa-sub { font-size: 0.6rem; }
+        .dash-welcome-left h2 { font-size: 1.2rem; }
+        .dash-welcome-left p { font-size: 0.8rem; }
+    }
+</style>
+
+{% set is_admin = session.get('is_admin') %}
+{% set greeting_hour = now.hour if now is defined else 12 %}
+{% if greeting_hour < 12 %}
+    {% set greeting = "Good morning" %}
+{% elif greeting_hour < 18 %}
+    {% set greeting = "Good afternoon" %}
+{% else %}
+    {% set greeting = "Good evening" %}
+{% endif %}
+
+{# ── Build specimen type summary from today's records ── #}
+{% set type_counts = {} %}
+{% set loc_data = {} %}
+{% set total_duration_mins = namespace(value=0) %}
+{% set duration_count = namespace(value=0) %}
+{% set unique_locations = namespace(value=[]) %}
+
+{% for r in today_records %}
+    {% if r.sample_types_json %}
+        {% set types = r.sample_types_json|tojson if false else none %}
+    {% endif %}
+    {% set loc = r.location or 'Unknown' %}
+    {% if loc not in loc_data %}
+        {% set _ = loc_data.update({loc: {'patients': 0, 'specimens': 0, 'records': 0}}) %}
+    {% endif %}
+    {% set _ = loc_data[loc].update({
+        'patients': loc_data[loc].patients + (r.patient_count or 0),
+        'specimens': loc_data[loc].specimens + (r.total_sampling or 0),
+        'records': loc_data[loc].records + 1
+    }) %}
+    {% if loc not in unique_locations.value %}
+        {% set _ = unique_locations.value.append(loc) %}
+    {% endif %}
+{% endfor %}
+
+<div class="dash-wrap">
+
+    <!-- ═══ WELCOME ═══ -->
+    <div class="dash-welcome">
+        <div class="dash-welcome-left">
+            <h2 id="greetingMessage">{{ greeting }}, {{ member.full_name.split()[0] if member.full_name else 'User' }}! <span class="wave">👋</span></h2>
+            <p>{% if is_admin %}Team-wide collection overview for today.{% else %}Here's your collection summary for today.{% endif %}</p>
+        </div>
+        <div class="dash-welcome-right">
+            <span class="date-badge">
+                <i class="fas fa-calendar-day"></i>
+                {{ today.strftime('%A, %B %d, %Y') }}
+            </span>
+        </div>
+    </div>
+
+    <!-- ═══ STAT CARDS ═══ -->
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon purple"><i class="fas fa-users"></i></div>
+                <span class="stat-delta neutral">Today</span>
+            </div>
+            <div class="stat-label">Patients</div>
+            <div class="stat-value">{{ today_patients or 0 }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon blue"><i class="fas fa-vial"></i></div>
+                <span class="stat-delta neutral">Today</span>
+            </div>
+            <div class="stat-label">Total Specimens</div>
+            <div class="stat-value">{{ today_sampling or 0 }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon green"><i class="fas fa-file-alt"></i></div>
+                <span class="stat-delta neutral">Today</span>
+            </div>
+            <div class="stat-label">Collection Records</div>
+            <div class="stat-value">{{ today_entries_count or 0 }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon orange"><i class="fas fa-money-bill-wave"></i></div>
+                <span class="stat-delta neutral">Today</span>
+            </div>
+            <div class="stat-label">Total Fees</div>
+            <div class="stat-value">{{ "{:,}".format(today_total_fees or 0) }} ៛</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon red"><i class="fas fa-clock"></i></div>
+                <span class="stat-delta neutral">Today</span>
+            </div>
+            <div class="stat-label">Avg. Duration</div>
+            <div class="stat-value" id="avgDurationVal">—</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon teal"><i class="fas fa-map-marker-alt"></i></div>
+                <span class="stat-delta neutral">Today</span>
+            </div>
+            <div class="stat-label">Locations</div>
+            <div class="stat-value">{{ unique_locations.value|length }}</div>
+        </div>
+    </div>
+
+    <!-- ═══ CHARTS ROW ═══ -->
+    <div class="row row-gap mb-3">
+        <!-- Collection Trend -->
+        <div class="col-lg-7">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h6><i class="fas fa-chart-line"></i> Collection Trend</h6>
+                    <span class="dash-card-link" style="cursor:default;">Last 7 Days</span>
+                </div>
+                <div class="dash-card-body">
+                    <div class="chart-area">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Specimen Type Summary -->
+        <div class="col-lg-5">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h6><i class="fas fa-flask"></i> Specimen Type Summary</h6>
+                    <a href="{{ url_for('report') }}" class="dash-card-link">View All</a>
+                </div>
+                <div class="dash-card-body">
+                    <div class="donut-wrap">
+                        <div class="donut-canvas-box">
+                            <canvas id="typeChart"></canvas>
+                            <div class="donut-center">
+                                <span class="num" id="typeTotalNum">{{ today_sampling or 0 }}</span>
+                                <span class="lbl">Total</span>
+                            </div>
+                        </div>
+                        <div class="donut-legend">
+                            <ul class="type-legend" id="typeLegend"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ MIDDLE ROW ═══ -->
+    <div class="row row-gap mb-3">
+
+         {% if is_admin %}
+        <!-- Admin: Collector Performance -->
+        <div class="col-lg-4">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h6><i class="fas fa-trophy"></i> Collector Performance</h6>
+                    <span class="dash-card-link" style="cursor:default;">Today</span>
+                </div>
+                <div class="dash-card-body p-0">
+                    {% if collector_performance_today %}
+                    <div style="max-height: 280px; overflow-y: auto;">
+                        <table class="dash-table">
+                            <thead>
+                                <tr>
+                                    <th>Collector</th>
+                                    <th class="text-center">Patients</th>
+                                    <th class="text-center">Specimens</th>
+                                    <th class="text-center">Records</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for c in collector_performance_today %}
+                                <tr class="{% if c.is_self %}collector-self-row{% endif %}">
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:8px;">
+                                            {% set pp = c.profile_picture %}
+                                            {% if pp and pp != 'default.png' and pp.startswith('http') %}
+                                            <img src="{{ pp }}" class="collector-avatar" alt="">
+                                            {% elif pp and pp != 'default.png' %}
+                                            <img src="{{ url_for('uploaded_file', filename=pp) }}" class="collector-avatar" alt="">
+                                            {% else %}
+                                            <div class="collector-avatar-ph">{{ c.full_name[:1] }}</div>
+                                            {% endif %}
+                                            <div class="collector-info">
+                                                <span class="collector-name">{{ c.full_name.split()[0] }}</span>
+                                                {% if c.is_self %}
+                                                <span class="you-badge"><i class="fas fa-user-check"></i> You</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center"><span class="stat-number">{{ c.patients }}</span></td>
+                                    <td class="text-center"><span class="stat-number">{{ c.specimens }}</span></td>
+                                    <td class="text-center"><span class="stat-number">{{ c.records }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-mini">
+                        <span class="ei">📭</span>
+                        No collection activity today.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin: Team Members -->
+        <div class="col-lg-3">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h6><i class="fas fa-users"></i> Team Members</h6>
+                    <a href="{{ url_for('members_list') }}" class="dash-card-link">Manage</a>
+                </div>
+                <div class="dash-card-body p-0" style="max-height: 280px; overflow-y: auto; padding: 12px 16px;">
+                    {% if all_members %}
+                        {% set online_count = all_members|selectattr('is_online')|list|length %}
+                        {% set admin_count = all_members|selectattr('is_admin')|list|length %}
+
+                        <div class="team-stats-bar">
+                            <span class="team-stat-item">
+                                <span class="dot-indicator online"></span>
+                                <span class="count-num">{{ online_count }}</span> Online
+                            </span>
+                            <span class="team-stat-item">
+                                <span class="dot-indicator offline"></span>
+                                <span class="count-num">{{ all_members|length - online_count }}</span> Offline
+                            </span>
+                            <span class="team-stat-item">
+                                <span class="dot-indicator admin"></span>
+                                <span class="count-num">{{ admin_count }}</span> Admin
+                            </span>
+                            <span class="team-stat-item total">
+                                Total <span class="count-num">{{ all_members|length }}</span>
+                            </span>
+                        </div>
+
+                        {% for m in all_members[:10] %}
+                        <div class="member-item {% if m.id == member.id %}self{% endif %}">
+                            <div class="member-avatar-wrapper">
+                                {% set pp = m.profile_picture %}
+                                {% if pp and pp != 'default.png' and pp.startswith('http') %}
+                                <img src="{{ pp }}" class="member-avatar {% if m.id == member.id %}self-avatar-img{% endif %}" alt="{{ m.full_name }}">
+                                {% elif pp and pp != 'default.png' %}
+                                <img src="{{ url_for('uploaded_file', filename=pp) }}" class="member-avatar {% if m.id == member.id %}self-avatar-img{% endif %}" alt="{{ m.full_name }}">
+                                {% else %}
+                                <div class="member-avatar-ph {% if m.id == member.id %}self-avatar{% endif %}">{{ m.full_name[:1] }}</div>
+                                {% endif %}
+                                <!-- Status dot only shows when member is online -->
+                                {% if m.is_online %}
+                                <span class="member-status-dot online"></span>
+                                {% endif %}
+                            </div>
+                            <div class="member-info">
+                                <div class="member-name-row">
+                                    <span class="member-name {% if m.id == member.id %}self-name{% endif %}">{{ m.full_name }}</span>
+                                    <div class="member-badges">
+                                        {% if m.id == member.id %}
+                                        <span class="member-badge you"><i class="fas fa-user-check"></i> You</span>
+                                        {% endif %}
+                                        {% if m.is_admin and m.id != member.id %}
+                                        <span class="member-badge admin"><i class="fas fa-shield-alt"></i> Admin</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="member-status-text {% if m.is_online %}online{% elif m.is_active %}offline{% else %}inactive{% endif %}">
+                                <span class="mini-dot {% if m.is_online %}online{% elif m.is_active %}offline{% else %}inactive{% endif %}"></span>
+                                {% if m.is_online %}Online{% elif m.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </div>
+                        {% endfor %}
+
+                        {% if all_members|length > 10 %}
+                        <div class="member-more">
+                            <a href="{{ url_for('members_list') }}">
+                                View All {{ all_members|length }} Members <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="empty-mini">
+                            <span class="ei">👤</span>
+                            <p style="margin-top: 8px; font-weight: 500;">No members found</p>
+                            <p style="font-size: 0.8rem; color: var(--dash-muted);">Add collectors to get started</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin: Recent Collection Records -->
+        <div class="col-lg-5">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h6><i class="fas fa-list-ul"></i> Recent Collection Records</h6>
+                    <a href="{{ url_for('records') }}" class="dash-card-link">View All</a>
+                </div>
+                <div class="dash-card-body p-0">
+                    {% if today_records %}
+                    <div style="max-height: 280px; overflow-y: auto;">
+                        <table class="dash-table">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Patient</th>
+                                    <th>Specimens</th>
+                                    <th>Location</th>
+                                    <th>Collector</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in today_records[:5] %}
+                                <tr>
+                                    <td>{{ r.call_time or '—' }}</td>
+                                    <td>{{ r.patient_count or 0 }}</td>
+                                    <td>
+                                        {% if r.sample_types_json %}
+                                            {% set display = get_sample_types_display(r.sample_types_json) %}
+                                            {% if display and display != '-' %}
+                                                {% for part in display.split(', ') %}
+                                                    {% set name = part.split(' ')[-1] if part else 'Other' %}
+                                                    {% set lower = name|lower %}
+                                                    <span class="specimen-pill
+                                                        {% if 'blood' in lower %}pill-blood
+                                                        {% elif 'serum' in lower %}pill-serum
+                                                        {% elif 'urine' in lower %}pill-urine
+                                                        {% elif 'swab' in lower %}pill-swab
+                                                        {% elif 'plasma' in lower %}pill-plasma
+                                                        {% elif 'stool' in lower %}pill-stool
+                                                        {% else %}pill-other{% endif %}">{{ name }}</span>
+                                                {% endfor %}
+                                            {% else %}
+                                                <span class="text-muted">{{ r.total_sampling }}</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">{{ r.total_sampling }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ r.location or '—' }}</td>
+                                    <td>
+                                        {% set collector = all_members|selectattr('id', 'equalto', r.member_id)|first if all_members else None %}
+                                        {{ collector.full_name.split()[0] if collector else 'Unknown' }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <a href="{{ url_for('records') }}" class="view-all-link">View All Records <i class="fas fa-arrow-right"></i></a>
+                    {% else %}
+                    <div class="empty-mini">
+                        <span class="ei">📭</span>
+                        No records today yet.
+                        <div class="empty-action">
+                            <a href="{{ url_for('add_record') }}">+ Add First Record</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <!-- Member: Recent Collection Records -->
+        <div class="col-lg-7">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h6><i class="fas fa-list-ul"></i> Recent Collection Records</h6>
+                    <a href="{{ url_for('records') }}" class="dash-card-link">View All</a>
+                </div>
+                <div class="dash-card-body p-0">
+                    {% if today_records %}
+                    <div style="max-height: 350px; overflow-y: auto;">
+                        <table class="dash-table">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Patient</th>
+                                    <th>Specimens</th>
+                                    <th>Location</th>
+                                    <th>Doctor</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in today_records[:6] %}
+                                <tr>
+                                    <td class="fw-semibold">{{ r.call_time or '—' }}</td>
+                                    <td>{{ r.patient_count or 0 }}</td>
+                                    <td>
+                                        {% if r.sample_types_json %}
+                                            {% set display = get_sample_types_display(r.sample_types_json) %}
+                                            {% for part in display.split(', ') %}
+                                                {% set name = part.split(' ')[-1] if part else 'Other' %}
+                                                {% set lower = name|lower %}
+                                                <span class="specimen-pill
+                                                    {% if 'blood' in lower %}pill-blood
+                                                    {% elif 'serum' in lower %}pill-serum
+                                                    {% elif 'urine' in lower %}pill-urine
+                                                    {% elif 'swab' in lower %}pill-swab
+                                                    {% elif 'plasma' in lower %}pill-plasma
+                                                    {% elif 'stool' in lower %}pill-stool
+                                                    {% else %}pill-other{% endif %}">{{ name }}</span>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="text-muted">{{ r.total_sampling }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ r.location or '—' }}</td>
+                                    <td>{{ r.doctor or '—' }}</td>
+                                    <td>
+                                        {% if r.duration %}
+                                        <span class="duration-badge">{{ r.duration }}</span>
+                                        {% else %}—{% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <a href="{{ url_for('records') }}" class="view-all-link">View All Records <i class="fas fa-arrow-right"></i></a>
+                    {% else %}
+                    <div class="empty-mini">
+                        <span class="ei">📭</span>
+                        No collection records today.
+                        <div class="empty-action">
+                            <a href="{{ url_for('add_record') }}">+ Add First Record</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Member: Today's Summary by Location -->
+        <div class="col-lg-5">
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h6><i class="fas fa-map-marker-alt"></i> Summary by Location</h6>
+                    <a href="{{ url_for('report') }}" class="dash-card-link">View All</a>
+                </div>
+                <div class="dash-card-body p-0">
+                    {% if loc_data %}
+                    <div style="max-height: 350px; overflow-y: auto;">
+                        <table class="dash-table">
+                            <thead>
+                                <tr>
+                                    <th>Location</th>
+                                    <th class="text-center">Patients</th>
+                                    <th class="text-center">Specimens</th>
+                                    <th class="text-center">Records</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for loc, data in loc_data.items() %}
+                                <tr>
+                                    <td class="fw-semibold">{{ loc }}</td>
+                                    <td class="text-center">{{ data.patients }}</td>
+                                    <td class="text-center">{{ data.specimens }}</td>
+                                    <td class="text-center">{{ data.records }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td>Total</td>
+                                    <td class="text-center">{{ today_patients or 0 }}</td>
+                                    <td class="text-center">{{ today_sampling or 0 }}</td>
+                                    <td class="text-center">{{ today_entries_count or 0 }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-mini">
+                        <span class="ei">📍</span>
+                        No locations recorded today.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ═══ QUICK ACTIONS ═══ -->
+    <h6 class="section-title"><i class="fas fa-bolt" style="color:var(--dash-orange);"></i> Quick Actions</h6>
+    <div class="quick-grid">
+        <a href="{{ url_for('add_record') }}" class="quick-btn">
+            <div class="qa-icon blue"><i class="fas fa-plus"></i></div>
+            <div class="qa-title">Add Collection</div>
+            <div class="qa-sub">Record new collection</div>
+        </a>
+        <a href="{{ url_for('records') }}" class="quick-btn">
+            <div class="qa-icon cyan"><i class="fas fa-list"></i></div>
+            <div class="qa-title">View Records</div>
+            <div class="qa-sub">Browse all records</div>
+        </a>
+        {% if is_admin %}
+        <a href="{{ url_for('report') }}" class="quick-btn">
+            <div class="qa-icon blue"><i class="fas fa-chart-bar"></i></div>
+            <div class="qa-title">Reports</div>
+            <div class="qa-sub">View summary reports</div>
+        </a>
+        <a href="{{ url_for('members_list') }}" class="quick-btn">
+            <div class="qa-icon green"><i class="fas fa-users"></i></div>
+            <div class="qa-title">Manage Collectors</div>
+            <div class="qa-sub">Add or manage members</div>
+        </a>
+        <a href="{{ url_for('admin_panel') }}" class="quick-btn">
+            <div class="qa-icon purple"><i class="fas fa-clipboard-list"></i></div>
+            <div class="qa-title">System Logs</div>
+            <div class="qa-sub">View activity logs</div>
+        </a>
+        {% else %}
+        <a href="{{ url_for('report') }}" class="quick-btn">
+            <div class="qa-icon green"><i class="fas fa-print"></i></div>
+            <div class="qa-title">Print Report</div>
+            <div class="qa-sub">Daily collection report</div>
+        </a>
+        <a href="{{ url_for('report') }}" class="quick-btn">
+            <div class="qa-icon purple"><i class="fas fa-chart-pie"></i></div>
+            <div class="qa-title">My Reports</div>
+            <div class="qa-sub">View my reports</div>
+        </a>
+        <a href="{{ url_for('profile') }}" class="quick-btn">
+            <div class="qa-icon orange"><i class="fas fa-user"></i></div>
+            <div class="qa-title">My Profile</div>
+            <div class="qa-sub">Manage profile</div>
+        </a>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ── Fix the greeting based on actual time ──
+    function updateGreeting() {
+        const now = new Date();
+        const hours = now.getHours();
+        let greeting = '';
+
+        if (hours < 12) {
+            greeting = 'Good morning';
+        } else if (hours < 18) {
+            greeting = 'Good afternoon';
+        } else {
+            greeting = 'Good evening';
+        }
+
+        const greetingElement = document.getElementById('greetingMessage');
+        if (greetingElement) {
+            const currentText = greetingElement.textContent;
+            const namePart = currentText.split(', ').slice(1).join(', ') || 'User! 👋';
+            greetingElement.textContent = greeting + ', ' + namePart;
+        }
+    }
+
+    updateGreeting();
+
+    // ── Trend chart data from Flask ──
+    const last7 = {{ last_7_days|tojson if last_7_days is defined else '[]' }};
+    const labels = last7.map(d => {
+        const parts = d.date.split('-');
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return months[parseInt(parts[1], 10) - 1] + ' ' + parseInt(parts[2], 10);
+    });
+    const samplingData = last7.map(d => d.sampling || 0);
+    const entriesData = last7.map(d => d.entries || 0);
+
+    const patientsData = last7.map(d => Math.round((d.sampling || 0) * 0.75));
+
+    const ctxTrend = document.getElementById('trendChart');
+    if (ctxTrend) {
+        new Chart(ctxTrend, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Patients',
+                        data: patientsData,
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.08)',
+                        borderWidth: 2.5,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#8b5cf6',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        tension: 0.35,
+                        fill: false
+                    },
+                    {
+                        label: 'Specimens',
+                        data: samplingData,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                        borderWidth: 2.5,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#3b82f6',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        tension: 0.35,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        align: 'end',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'line',
+                            boxWidth: 16,
+                            font: { size: 11, weight: '600' },
+                            color: '#64748b'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        titleFont: { size: 12 },
+                        bodyFont: { size: 12 },
+                        padding: 12,
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8', font: { size: 10 } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f1f5f9' },
+                        ticks: { color: '#94a3b8', font: { size: 10 } }
+                    }
+                }
+            }
+        });
+    }
+
+    // ── Specimen type donut from today's records ──
+    const recordsJson = [
+        {% for r in today_records %}
+        {
+            types: {{ (r.sample_types_json or '{}')|safe if r.sample_types_json else '{}' }},
+            sampling: {{ r.total_sampling or 0 }},
+            duration: {{ ('"' ~ r.duration ~ '"')|safe if r.duration else 'null' }}
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    const typeTotals = {};
+    let totalSpec = 0;
+    let durationSum = 0;
+    let durationN = 0;
+
+    recordsJson.forEach(r => {
+        totalSpec += r.sampling || 0;
+        if (r.duration && typeof r.duration === 'string') {
+            let mins = 0;
+            const hMatch = r.duration.match(/(\d+)\s*h/);
+            const mMatch = r.duration.match(/(\d+)\s*m/);
+            if (hMatch) mins += parseInt(hMatch[1], 10) * 60;
+            if (mMatch) mins += parseInt(mMatch[1], 10);
+            if (!hMatch && !mMatch) {
+                const n = parseInt(r.duration, 10);
+                if (!isNaN(n)) mins = n;
+            }
+            if (mins > 0) { durationSum += mins; durationN++; }
+        }
+
+        let types = r.types;
+        if (typeof types === 'string') {
+            try { types = JSON.parse(types); } catch (e) { types = {}; }
+        }
+        if (types && typeof types === 'object') {
+            Object.keys(types).forEach(k => {
+                const v = parseInt(types[k], 10) || 0;
+                if (v > 0) typeTotals[k] = (typeTotals[k] || 0) + v;
+            });
+        }
+    });
+
+    const avgEl = document.getElementById('avgDurationVal');
+    if (avgEl) {
+        if (durationN > 0) {
+            avgEl.textContent = Math.round(durationSum / durationN) + ' min';
+        } else {
+            avgEl.textContent = '—';
+        }
+    }
+
+    const sortedTypes = Object.entries(typeTotals).sort((a, b) => b[1] - a[1]);
+    const typeLabels = sortedTypes.map(t => t[0]);
+    const typeValues = sortedTypes.map(t => t[1]);
+    const typeSum = typeValues.reduce((a, b) => a + b, 0) || totalSpec;
+
+    const colors = [
+        '#ef4444', '#f59e0b', '#10b981', '#3b82f6',
+        '#8b5cf6', '#eab308', '#94a3b8', '#ec4899',
+        '#14b8a6', '#f97316', '#6366f1', '#84cc16'
+    ];
+
+    const legendEl = document.getElementById('typeLegend');
+    if (legendEl) {
+        if (sortedTypes.length === 0) {
+            legendEl.innerHTML = '<li style="color:#94a3b8;font-size:0.8rem;justify-content:center;">No specimen types recorded today</li>';
+        } else {
+            legendEl.innerHTML = sortedTypes.map((t, i) => {
+                const pct = typeSum > 0 ? ((t[1] / typeSum) * 100).toFixed(0) : 0;
+                return `<li>
+                    <span class="type-left">
+                        <span class="dot" style="background:${colors[i % colors.length]}"></span>
+                        <span class="type-name">${t[0]}</span>
+                    </span>
+                    <span class="type-count">${t[1]} (${pct}%)</span>
+                </li>`;
+            }).join('');
+        }
+    }
+
+    const typeTotalNum = document.getElementById('typeTotalNum');
+    if (typeTotalNum) typeTotalNum.textContent = typeSum || totalSpec || 0;
+
+    const ctxType = document.getElementById('typeChart');
+    if (ctxType) {
+        new Chart(ctxType, {
+            type: 'doughnut',
+            data: {
+                labels: typeLabels.length ? typeLabels : ['No data'],
+                datasets: [{
+                    data: typeValues.length ? typeValues : [1],
+                    backgroundColor: typeValues.length ? colors.slice(0, typeValues.length) : ['#e2e8f0'],
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                cutout: '70%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        enabled: typeValues.length > 0,
+                        backgroundColor: '#1e293b',
+                        padding: 10,
+                        cornerRadius: 8
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

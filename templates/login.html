@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAMMED LAB — ចូលប្រើប្រាស់ | Sign In</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700;900&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Montserrat:wght@600;700;800;900&family=Noto+Sans+Khmer:wght@400;500;600;700;800&family=Noto+Serif+Khmer:wght@400;500;600;700;800&family=Kantumruy+Pro:wght@400;500;600;700&family=Moul&display=swap" rel="stylesheet">
+    <!-- QR Scanner library -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
+    <style>
+        :root {
+            --primary: #203b79;
+            --accent: #ed1c24;
+            --indigo: #6366f1;
+            --violet: #8b5cf6;
+            --purple: #a855f7;
+            --cyan: #06b6d4;
+            --teal: #14b8a6;
+            --success: #22c55e;
+
+            --bg-0: #05061a;
+            --field-bg: rgba(15, 20, 50, .55);
+            --field-bg-2: rgba(20, 26, 62, .7);
+            --field-border: rgba(99, 102, 241, .22);
+            --field-border-hover: rgba(99, 102, 241, .5);
+            --field-border-focus: #8b5cf6;
+
+            --text: #ffffff;
+            --text-soft: rgba(255,255,255,.72);
+            --text-muted: rgba(255,255,255,.5);
+            --text-faint: rgba(255,255,255,.32);
+
+            --transition: .25s cubic-bezier(.4,0,.2,1);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { min-height: 100%; }
+        body {
+            min-height: 100vh;
+            font-family: "Inter", "Noto Sans Khmer", system-ui, -apple-system, "Segoe UI", sans-serif;
+            color: var(--text);
+            background: var(--bg-0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            position: relative;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ═══════════ BACKGROUND ═══════════ */
+        .bg {
+            position: fixed; inset: 0;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse at 20% 0%, rgba(99,102,241,.3), transparent 55%),
+                radial-gradient(ellipse at 90% 100%, rgba(139,92,246,.24), transparent 55%),
+                radial-gradient(ellipse at 50% 45%, rgba(20,184,166,.1), transparent 65%),
+                linear-gradient(160deg, #05061a 0%, #0a0e2a 50%, #131738 100%);
+        }
+        .bg::before {
+            content: "";
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(139,92,246,.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(139,92,246,.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            mask-image: radial-gradient(ellipse at 50% 40%, black 25%, transparent 75%);
+            -webkit-mask-image: radial-gradient(ellipse at 50% 40%, black 25%, transparent 75%);
+        }
+
+        .particle {
+            position: fixed; width: 5px; height: 5px;
+            border-radius: 50%; z-index: 2; pointer-events: none;
+            animation: particleFloat 15s ease-in-out infinite;
+        }
+        @keyframes particleFloat {
+            0%,100% { transform: translateY(0) scale(1); opacity: .35; }
+            50%     { transform: translateY(-40px) scale(1.4); opacity: .75; }
+        }
+        .p-1 { top: 14%; left: 8%;  background: var(--indigo); box-shadow: 0 0 12px #6366f1; }
+        .p-2 { top: 24%; right: 10%; background: var(--violet); box-shadow: 0 0 14px #8b5cf6; animation-delay: -3s; }
+        .p-3 { top: 62%; left: 6%;  background: var(--teal);   box-shadow: 0 0 12px #14b8a6; animation-delay: -6s; }
+        .p-4 { bottom: 22%; right: 12%; background: var(--cyan); box-shadow: 0 0 14px #06b6d4; animation-delay: -9s; }
+
+        /* ═══════════ SHELL ═══════════ */
+        .shell {
+            position: relative; z-index: 10;
+            width: 100%; max-width: 420px;
+            padding: 32px 30px 26px;
+            border-radius: 22px;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(139,92,246,.08), transparent 50%),
+                linear-gradient(160deg, rgba(10,14,42,.85), rgba(15,20,55,.9));
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1.5px solid rgba(139,92,246,.5);
+            animation: shellIn .8s cubic-bezier(.22,1,.36,1) both;
+        }
+        .shell::before {
+            content: "";
+            position: absolute; top: -1.5px; left: 20px; right: 20px;
+            height: 3px; border-radius: 4px;
+            background: linear-gradient(90deg, transparent, var(--indigo), var(--violet), var(--cyan), transparent);
+        }
+        @keyframes shellIn {
+            from { opacity: 0; transform: translateY(24px) scale(.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ═══════════ LOGO ═══════════ */
+        .logo-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
+        .logo-card {
+            position: relative; width: 96px; height: 96px;
+            border-radius: 22px; background: #ffffff;
+            display: grid; place-items: center; padding: 12px;
+        }
+        .logo-card img { width: 100%; height: 100%; object-fit: contain; display: block; border-radius: 10px; }
+        .logo-fallback {
+            display: none; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center; width: 100%; height: 100%; line-height: 1;
+        }
+        .logo-fallback .lf-mark {
+            font-family: "Montserrat", sans-serif;
+            font-size: 28px; font-weight: 900;
+            letter-spacing: -3px; color: var(--primary); line-height: .85;
+        }
+        .logo-fallback .lf-mark b { color: var(--accent); }
+        .logo-fallback .lf-name {
+            margin-top: 3px; font-family: "Montserrat", sans-serif;
+            font-size: 7.5px; font-weight: 900; letter-spacing: .5px; color: var(--primary);
+        }
+        .logo-fallback .lf-name span { color: var(--accent); }
+        .logo-fallback .lf-sub {
+            margin-top: 2px; font-family: "JetBrains Mono", monospace;
+            font-size: 5px; font-weight: 700; letter-spacing: 1.3px; color: #8090a5;
+        }
+
+        /* ═══════════ HEADINGS ═══════════ */
+        .headings { text-align: center; margin-bottom: 20px; }
+        .headings h1 {
+            font-family: "Battambang", "Noto Serif Khmer", "Moul", serif;
+            font-size: 22px; font-weight: 900;
+            color: #ffffff; line-height: 1.7;
+            margin-bottom: 4px; letter-spacing: .5px;
+        }
+        .headings h2 {
+            font-family: "Montserrat", sans-serif;
+            font-size: 26px; font-weight: 800;
+            line-height: 1; letter-spacing: -.8px;
+            background: linear-gradient(120deg, #c7d2fe 0%, #a5b4fc 35%, #818cf8 65%, #60a5fa 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            margin-bottom: 8px;
+        }
+        .headings p {
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-size: 12.5px; font-weight: 700;
+            color: var(--text-soft); line-height: 1.9;
+            max-width: 340px; margin: 0 auto;
+        }
+
+        /* ═══════════ TABS (NEW) ═══════════ */
+        .login-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            padding: 5px;
+            border-radius: 13px;
+            background: rgba(255,255,255,.04);
+            border: 1px solid rgba(139,92,246,.18);
+            margin-bottom: 20px;
+        }
+        .login-tab {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            padding: 10px 8px;
+            border-radius: 9px;
+            background: transparent;
+            border: 0;
+            color: rgba(255,255,255,.5);
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .login-tab .tab-icon { font-size: 14px; }
+        .login-tab:hover { color: rgba(255,255,255,.85); background: rgba(139,92,246,.08); }
+        .login-tab.active {
+            background: linear-gradient(135deg, rgba(99,102,241,.22), rgba(139,92,246,.12));
+            color: #c4b5fd;
+            box-shadow: inset 0 0 0 1px rgba(139,92,246,.4);
+        }
+
+        /* ═══════════ PANELS ═══════════ */
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; animation: tabFade .3s ease both; }
+        @keyframes tabFade {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ═══════════ ALERTS ═══════════ */
+        .alert {
+            display: none; align-items: flex-start; gap: 9px;
+            padding: 10px 12px; border-radius: 11px;
+            font-size: 12px; line-height: 1.55;
+            margin-bottom: 14px;
+            border: 1px solid transparent;
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-weight: 700;
+        }
+        .alert.success { display: flex; background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.35); color: #86efac; }
+        .alert.error   { display: flex; background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.35); color: #fca5a5; }
+        .alert.info    { display: flex; background: rgba(99,102,241,.12); border-color: rgba(99,102,241,.35); color: #a5b4fc; }
+        .alert-icon { font-size: 13px; flex-shrink: 0; margin-top: 2px; }
+        .alert-body { flex: 1; }
+        .alert-close {
+            flex-shrink: 0; background: transparent; color: currentColor;
+            opacity: .55; font-size: 15px; line-height: 1; padding: 0 3px; cursor: pointer;
+        }
+        .alert-close:hover { opacity: 1; }
+
+        /* ═══════════ FIELDS ═══════════ */
+        .field-group { margin-bottom: 14px; }
+        .field-label-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 8px; gap: 8px;
+        }
+        .field-label {
+            display: flex; align-items: center; gap: 7px;
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-size: 13px; font-weight: 700; color: #ffffff;
+        }
+        .field-label .lf-icon { font-size: 12px; }
+        .field-hint {
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-size: 12px; font-weight: 700;
+            color: #a78bfa; text-decoration: none;
+            cursor: pointer; transition: color var(--transition);
+        }
+        .field-hint:hover { color: #c4b5fd; text-decoration: underline; text-underline-offset: 3px; }
+
+        .field-wrapper { position: relative; }
+        .field-icon {
+            position: absolute; left: 15px; top: 50%;
+            transform: translateY(-50%);
+            width: 18px; height: 18px;
+            display: flex; align-items: center; justify-content: center;
+            color: rgba(255,255,255,.42);
+            pointer-events: none;
+            transition: color var(--transition);
+            font-size: 13px;
+        }
+        .field-wrapper input {
+            width: 100%; height: 50px;
+            padding: 0 18px 0 44px;
+            border-radius: 13px;
+            border: 1.5px solid var(--field-border);
+            background: var(--field-bg);
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 14px; font-weight: 500;
+            outline: none;
+            transition: all var(--transition);
+        }
+        .field-wrapper input::placeholder { color: var(--text-faint); font-weight: 400; }
+        .field-wrapper input:hover { border-color: var(--field-border-hover); background: var(--field-bg-2); }
+        .field-wrapper input:focus {
+            border-color: var(--field-border-focus);
+            background: rgba(30, 20, 60, .65);
+            box-shadow: 0 0 0 3px rgba(139,92,246,.15);
+        }
+        .field-wrapper input:focus ~ .field-icon { color: #a78bfa; }
+        .field-wrapper input[type="password"] { padding-right: 48px; }
+        .field-wrapper input:-webkit-autofill,
+        .field-wrapper input:-webkit-autofill:hover,
+        .field-wrapper input:-webkit-autofill:focus {
+            -webkit-text-fill-color: #ffffff;
+            -webkit-box-shadow: 0 0 0 1000px rgba(30,20,60,.9) inset;
+            transition: background-color 9999s ease-in-out 0s;
+            border-color: var(--field-border-focus);
+        }
+
+        .eye-toggle {
+            position: absolute; right: 8px; top: 50%;
+            transform: translateY(-50%);
+            width: 36px; height: 36px;
+            display: grid; place-items: center;
+            border-radius: 9px;
+            background: transparent; border: 0;
+            color: rgba(255,255,255,.5);
+            cursor: pointer;
+            transition: all var(--transition);
+            font-size: 15px; line-height: 1;
+        }
+        .eye-toggle:hover { color: #c4b5fd; background: rgba(139,92,246,.14); }
+        .eye-toggle:focus-visible { outline: 2px solid rgba(139,92,246,.5); outline-offset: 2px; }
+        .eye-toggle svg {
+            width: 17px; height: 17px;
+            stroke: currentColor; fill: none;
+            stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+        }
+
+        /* ═══════════ OPTIONS ROW ═══════════ */
+        .options-row {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; margin: 14px 0 18px; flex-wrap: wrap;
+        }
+        .remember {
+            display: flex; align-items: center; gap: 9px;
+            cursor: pointer; user-select: none;
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-size: 12.5px; font-weight: 700; color: #ffffff;
+        }
+        .remember input { position: absolute; opacity: 0; pointer-events: none; }
+        .checkbox-box {
+            position: relative; width: 20px; height: 20px;
+            border-radius: 5px;
+            border: 1.5px solid var(--field-border-hover);
+            background: var(--field-bg);
+            display: grid; place-items: center;
+            transition: all var(--transition);
+            flex-shrink: 0;
+        }
+        .checkbox-box::after {
+            content: "";
+            position: absolute;
+            width: 10px; height: 5px;
+            border-left: 2.5px solid white;
+            border-bottom: 2.5px solid white;
+            transform: rotate(-45deg) translate(1px, -1px);
+            opacity: 0; transition: opacity var(--transition);
+        }
+        .remember input:checked ~ .checkbox-box {
+            background: linear-gradient(135deg, var(--indigo), var(--violet));
+            border-color: transparent;
+        }
+        .remember input:checked ~ .checkbox-box::after { opacity: 1; }
+
+        .ssl-note {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 9px; border-radius: 100px;
+            background: rgba(34,197,94,.08);
+            border: 1px solid rgba(34,197,94,.22);
+            font-family: "JetBrains Mono", monospace;
+            font-size: 9px; font-weight: 700; letter-spacing: .4px;
+            color: var(--success);
+        }
+        .ssl-note .ssl-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--success);
+            animation: sslPulse 2s infinite;
+        }
+        @keyframes sslPulse {
+            0%,100% { opacity: 1; transform: scale(1); }
+            50%     { opacity: .4; transform: scale(.75); }
+        }
+
+        /* ═══════════ SUBMIT ═══════════ */
+        .submit-btn {
+            position: relative; width: 100%; height: 54px;
+            display: flex; align-items: center; justify-content: center; gap: 11px;
+            border-radius: 13px;
+            background: linear-gradient(120deg, #6366f1 0%, #8b5cf6 45%, #06b6d4 100%);
+            color: #ffffff;
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-size: 14.5px; font-weight: 700;
+            cursor: pointer; overflow: hidden; border: 0;
+            transition: all var(--transition);
+        }
+        .submit-btn::before {
+            content: ""; position: absolute;
+            top: 0; left: -120%; width: 80%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+            transform: skewX(-22deg);
+            transition: left .8s ease;
+        }
+        .submit-btn:hover::before { left: 140%; }
+        .submit-btn:hover { filter: brightness(1.1); }
+        .submit-btn:active { transform: translateY(1px); }
+        .submit-btn:disabled { opacity: .68; cursor: not-allowed; transform: none; }
+        .submit-btn .btn-lock { font-size: 15px; }
+        .submit-btn .btn-sep { opacity: .55; font-size: 12px; margin: 0 -2px; }
+
+        /* ═══════════ QR PANEL (NEW) ═══════════ */
+        .qr-description {
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--text-soft);
+            line-height: 1.75;
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .qr-action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .qr-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 18px 12px;
+            border-radius: 14px;
+            background: linear-gradient(155deg, rgba(99,102,241,.08), rgba(139,92,246,.04));
+            border: 1.5px dashed rgba(139,92,246,.4);
+            color: #c4b5fd;
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition);
+            text-align: center;
+            line-height: 1.4;
+        }
+        .qr-action:hover {
+            background: linear-gradient(155deg, rgba(99,102,241,.16), rgba(139,92,246,.1));
+            border-color: rgba(139,92,246,.7);
+            border-style: solid;
+            transform: translateY(-2px);
+        }
+        .qr-action .qr-action-icon {
+            font-size: 26px;
+            filter: drop-shadow(0 3px 8px rgba(139,92,246,.4));
+        }
+        .qr-action .qr-action-label-en {
+            display: block;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 9px;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: rgba(196,181,253,.6);
+            margin-top: 2px;
+        }
+
+        /* Scanner viewport */
+        .qr-reader-wrap {
+            display: none;
+            margin-bottom: 14px;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #000;
+            border: 2px solid rgba(139,92,246,.5);
+            position: relative;
+        }
+        .qr-reader-wrap.active { display: block; animation: tabFade .3s ease both; }
+        #qr-reader {
+            width: 100%;
+            min-height: 240px;
+        }
+        #qr-reader video {
+            width: 100% !important;
+            height: auto !important;
+            border-radius: 12px;
+        }
+        #qr-reader__scan_region {
+            background: #000;
+        }
+        #qr-reader__dashboard_section_csr button {
+            background: linear-gradient(135deg, var(--indigo), var(--violet)) !important;
+            color: white !important;
+            border: 0 !important;
+            padding: 8px 16px !important;
+            border-radius: 8px !important;
+            font-weight: 700 !important;
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif !important;
+        }
+
+        .qr-cancel-btn {
+            display: none;
+            width: 100%;
+            padding: 11px;
+            border-radius: 11px;
+            background: rgba(239,68,68,.1);
+            border: 1px solid rgba(239,68,68,.35);
+            color: #fca5a5;
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition);
+            margin-bottom: 14px;
+        }
+        .qr-cancel-btn.active { display: block; }
+        .qr-cancel-btn:hover {
+            background: rgba(239,68,68,.2);
+            border-color: rgba(239,68,68,.6);
+        }
+
+        /* Hidden file input */
+        #qrFileInput { display: none; }
+
+        /* QR status / result */
+        .qr-result {
+            display: none;
+            margin-top: 14px;
+            padding: 14px;
+            border-radius: 12px;
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-size: 12.5px;
+            font-weight: 700;
+            line-height: 1.6;
+            animation: tabFade .3s ease both;
+        }
+        .qr-result.success {
+            display: block;
+            background: rgba(34,197,94,.12);
+            border: 1px solid rgba(34,197,94,.35);
+            color: #86efac;
+        }
+        .qr-result.error {
+            display: block;
+            background: rgba(239,68,68,.12);
+            border: 1px solid rgba(239,68,68,.35);
+            color: #fca5a5;
+        }
+        .qr-result.info {
+            display: block;
+            background: rgba(99,102,241,.12);
+            border: 1px solid rgba(99,102,241,.35);
+            color: #a5b4fc;
+        }
+
+        /* Security hints for QR panel */
+        .qr-hints {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 11px;
+            background: rgba(255,255,255,.03);
+            border: 1px solid rgba(139,92,246,.15);
+        }
+        .qr-hint-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text-soft);
+            line-height: 1.6;
+        }
+        .qr-hint-item + .qr-hint-item { margin-top: 8px; }
+        .qr-hint-item .hint-bullet {
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
+            display: grid;
+            place-items: center;
+            border-radius: 5px;
+            background: rgba(139,92,246,.15);
+            color: #c4b5fd;
+            font-size: 10px;
+            margin-top: 1px;
+        }
+
+        /* ═══════════ REGISTER-LIKE ═══════════ */
+        .register-block { margin-top: 20px; text-align: center; }
+        .register-prompt {
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-size: 12.5px; font-weight: 700;
+            color: var(--text-soft); margin-bottom: 11px;
+        }
+        .register-btn {
+            display: flex; align-items: center; justify-content: center; gap: 9px;
+            width: 100%; padding: 13px 16px; border-radius: 12px;
+            background: linear-gradient(135deg, rgba(99,102,241,.1), rgba(139,92,246,.06));
+            border: 1.5px solid rgba(99,102,241,.3);
+            color: #c4b5fd;
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-size: 13px; font-weight: 700;
+            text-decoration: none; cursor: pointer;
+            transition: all var(--transition);
+        }
+        .register-btn:hover {
+            background: linear-gradient(135deg, rgba(99,102,241,.2), rgba(139,92,246,.12));
+            border-color: rgba(139,92,246,.55);
+            color: #ddd6fe;
+        }
+        .register-btn .arrow { transition: transform var(--transition); margin-left: 3px; }
+        .register-btn:hover .arrow { transform: translateX(3px); }
+
+        /* ═══════════ FOOTER ═══════════ */
+        .footer-contact {
+            margin-top: 22px; padding-top: 18px;
+            border-top: 1px solid rgba(139,92,246,.15);
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; flex-wrap: wrap;
+        }
+        .footer-label {
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-size: 12px; font-weight: 700;
+            color: var(--text-soft);
+        }
+        .contact-links {
+            display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+        }
+        .contact-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 11px; border-radius: 10px;
+            background: rgba(255,255,255,.04);
+            border: 1px solid rgba(139,92,246,.25);
+            color: #c4b5fd;
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-size: 11px; font-weight: 700;
+            text-decoration: none;
+            transition: all var(--transition);
+        }
+        .contact-chip:hover { background: rgba(99,102,241,.16); border-color: rgba(139,92,246,.5); }
+        .contact-chip .c-icon { font-size: 12px; }
+        .contact-chip.telegram { background: rgba(6,182,212,.1); border-color: rgba(6,182,212,.32); color: #67e8f9; }
+        .contact-chip.telegram:hover { background: rgba(6,182,212,.2); border-color: rgba(6,182,212,.55); }
+        .contact-chip.phone { background: rgba(34,197,94,.1); border-color: rgba(34,197,94,.32); color: #86efac; }
+        .contact-chip.phone:hover { background: rgba(34,197,94,.2); border-color: rgba(34,197,94,.55); }
+
+        /* ═══════════ MODALS ═══════════ */
+        .modal-bg {
+            position: fixed; inset: 0;
+            display: none; align-items: center; justify-content: center;
+            padding: 16px;
+            background: rgba(3,4,20,.85);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            z-index: 1000;
+        }
+        .modal-bg.active { display: flex; animation: overlayIn .22s ease both; }
+        @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal {
+            width: min(440px, 100%);
+            max-height: calc(100vh - 32px);
+            overflow-y: auto;
+            padding: 26px;
+            border-radius: 18px;
+            background:
+                radial-gradient(circle at 100% 0%, rgba(139,92,246,.1), transparent 55%),
+                radial-gradient(circle at 0% 100%, rgba(6,182,212,.08), transparent 55%),
+                #0d1230;
+            border: 1.5px solid rgba(139,92,246,.4);
+            position: relative;
+            animation: modalIn .32s cubic-bezier(.22,1,.36,1) both;
+            color: #ffffff;
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(20px) scale(.96); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .modal::before {
+            content: "";
+            position: absolute; top: -1.5px; left: 20px; right: 20px;
+            height: 3px; border-radius: 4px;
+            background: linear-gradient(90deg, transparent, var(--indigo), var(--violet), var(--cyan), transparent);
+        }
+        .modal-close {
+            position: absolute; top: 12px; right: 12px;
+            width: 32px; height: 32px;
+            display: grid; place-items: center;
+            border-radius: 10px;
+            background: rgba(255,255,255,.05);
+            color: rgba(255,255,255,.55);
+            font-size: 15px; cursor: pointer;
+            transition: all var(--transition); border: 0;
+        }
+        .modal-close:hover { background: rgba(139,92,246,.22); color: #c4b5fd; transform: rotate(6deg); }
+        .modal-icon {
+            width: 42px; height: 42px;
+            display: grid; place-items: center;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(139,92,246,.2), rgba(99,102,241,.12));
+            border: 1px solid rgba(139,92,246,.35);
+            color: #c4b5fd; font-size: 19px;
+            margin-bottom: 14px;
+        }
+        .modal h3 {
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-size: 18px; font-weight: 700; color: #ffffff;
+            margin-bottom: 6px;
+        }
+        .modal-desc {
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-size: 12.5px; font-weight: 700; line-height: 1.75;
+            color: var(--text-soft);
+            margin-bottom: 18px;
+        }
+        .modal .field-label { font-size: 12px; }
+        .modal .field-wrapper input,
+        .modal .field-wrapper textarea {
+            height: 46px;
+            padding: 0 16px 0 42px;
+            font-size: 13px;
+            background: rgba(15,20,50,.7);
+            border-radius: 12px;
+        }
+        .modal .field-wrapper textarea {
+            height: auto; min-height: 84px; padding: 12px 14px;
+        }
+        .modal-buttons {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 9px; margin-top: 18px;
+        }
+        .modal-buttons .submit-btn { height: 46px; font-size: 12.5px; margin-top: 0; }
+        .btn-ghost {
+            height: 46px; border-radius: 12px;
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(255,255,255,.12);
+            color: rgba(255,255,255,.75);
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-size: 12.5px; font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .btn-ghost:hover { background: rgba(255,255,255,.1); color: #ffffff; }
+
+        .status-result { display: none; margin-top: 14px; }
+        .status-card {
+            padding: 14px; border-radius: 12px;
+            background: rgba(255,255,255,.04);
+            border: 1px solid rgba(139,92,246,.22);
+        }
+        .badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 4px 10px; border-radius: 100px;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 9.5px; font-weight: 800;
+            letter-spacing: .5px; text-transform: uppercase;
+        }
+        .badge.pending  { color: #fbbf24; background: rgba(245,158,11,.15); }
+        .badge.approved { color: #4ade80; background: rgba(34,197,94,.15); }
+        .badge.rejected { color: #fca5a5; background: rgba(239,68,68,.15); }
+        .status-row {
+            display: flex; justify-content: space-between;
+            padding: 7px 0; font-size: 11.5px;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+            font-family: "JetBrains Mono", monospace;
+        }
+        .status-row:last-of-type { border-bottom: none; }
+        .status-row span { color: var(--text-muted); }
+        .status-row strong { color: #c4b5fd; font-weight: 700; }
+        .new-pass {
+            margin-top: 11px; padding: 12px; border-radius: 10px;
+            background: rgba(139,92,246,.12);
+            border: 1px dashed rgba(139,92,246,.45);
+            text-align: center;
+        }
+        .new-pass small {
+            display: block; font-size: 9px;
+            text-transform: uppercase; letter-spacing: .8px;
+            color: #c4b5fd; font-weight: 700;
+            font-family: "JetBrains Mono", monospace;
+        }
+        .new-pass strong {
+            display: block; margin-top: 4px;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 15px; color: #ffffff; letter-spacing: .5px;
+        }
+        .result-error {
+            padding: 12px; border-radius: 12px;
+            background: rgba(239,68,68,.14);
+            border: 1px solid rgba(239,68,68,.35);
+            color: #fca5a5; font-size: 12.5px;
+            font-family: "Battambang", "Noto Sans Khmer", sans-serif;
+            font-weight: 700;
+        }
+
+        .spin {
+            display: inline-block; width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ═══════════ RESPONSIVE ═══════════ */
+        @media (max-width: 460px) {
+            body { padding: 16px 12px; }
+            .shell { padding: 26px 22px 22px; border-radius: 20px; }
+            .logo-card { width: 88px; height: 88px; }
+            .headings h1 { font-size: 19px; }
+            .headings h2 { font-size: 23px; }
+            .headings p { font-size: 12px; }
+            .field-wrapper input { height: 48px; font-size: 13.5px; }
+            .submit-btn { height: 52px; font-size: 13.5px; }
+            .footer-contact { flex-direction: column; align-items: stretch; }
+            .contact-links { justify-content: center; }
+            .modal { padding: 22px 18px; }
+            .modal-buttons { grid-template-columns: 1fr; }
+            .qr-action-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="particle p-1"></div>
+<div class="particle p-2"></div>
+<div class="particle p-3"></div>
+<div class="particle p-4"></div>
+
+<main class="shell">
+
+    <!-- Logo -->
+    <div class="logo-wrap">
+        <div class="logo-card">
+            <img src="{{ url_for('static', filename='img/cammedlab-logo.png') }}"
+                 alt="CAMMED LAB"
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="logo-fallback">
+                <div class="lf-mark"><span>CM</span><b>L</b></div>
+                <div class="lf-name">C<span>A</span>MMED LAB</div>
+                <div class="lf-sub">DIAGNOSTICS</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Headings -->
+    <div class="headings">
+        <h1>ចូលកាន់ប្រព័ន្ធគ្រប់គ្រង</h1>
+        <h3>CAMMED LAB CMS</h3>
+        <p>សូមបញ្ចូលព័ត៌មានគណនីរបស់អ្នក ដើម្បីចូលប្រើប្រាស់ប្រព័ន្ធគ្រប់គ្រងគំរូវិទ្យាសាស្ត្រ</p>
+    </div>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert {{ category if category in ['success','error','info'] else 'info' }}">
+                    <span class="alert-icon">
+                        {% if category == 'success' %}✓
+                        {% elif category == 'danger' or category == 'error' %}⚠
+                        {% else %}ℹ{% endif %}
+                    </span>
+                    <span class="alert-body">{{ message }}</span>
+                    <button type="button" class="alert-close"
+                            onclick="this.parentElement.style.display='none'">×</button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- JS alert -->
+    <div id="loginAlert" class="alert" role="alert" aria-live="polite">
+        <span class="alert-icon" id="loginAlertIcon">⚠</span>
+        <span class="alert-body" id="loginAlertMessage"></span>
+        <button type="button" class="alert-close" onclick="dismissLoginAlert()" aria-label="Dismiss">×</button>
+    </div>
+
+    <!-- ═════════════ TABS (NEW) ═════════════ -->
+    <div class="login-tabs" role="tablist">
+        <button type="button" class="login-tab active" id="tab-credentials"
+                role="tab" aria-selected="true" aria-controls="panel-credentials"
+                onclick="switchTab('credentials')">
+            <span class="tab-icon">🔑</span>
+            <span>Credentials</span>
+        </button>
+        <button type="button" class="login-tab" id="tab-qr"
+                role="tab" aria-selected="false" aria-controls="panel-qr"
+                onclick="switchTab('qr')">
+            <span class="tab-icon">📱</span>
+            <span>QR Code</span>
+        </button>
+    </div>
+
+    <!-- ═════════════ TAB 1: CREDENTIALS ═════════════ -->
+    <div class="tab-panel active" id="panel-credentials" role="tabpanel">
+        <form method="POST" id="loginForm" autocomplete="on">
+            <div class="field-group">
+                <div class="field-label-row">
+                    <label class="field-label" for="username">
+                        <span class="lf-icon">👤</span>
+                        ឈ្មោះអ្នកប្រើប្រាស់ / Username
+                    </label>
+                    <a href="javascript:void(0)" class="field-hint" role="button" tabindex="0"
+                       onclick="openSupportModal(); return false;">
+                        ទាក់ទងអ្នកគ្រប់គ្រង
+                    </a>
+                </div>
+                <div class="field-wrapper">
+                    <input type="text" id="username" name="username" placeholder="tech.username"
+                           required autofocus autocomplete="username" spellcheck="false">
+                    <span class="field-icon">👤</span>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field-label-row">
+                    <label class="field-label" for="password">
+                        <span class="lf-icon">🔑</span>
+                        ពាក្យសម្ងាត់ / Password
+                    </label>
+                    <a href="javascript:void(0)" class="field-hint" role="button" tabindex="0"
+                       onclick="openModal(); return false;">
+                        ភ្លេចពាក្យសម្ងាត់?
+                    </a>
+                </div>
+                <div class="field-wrapper">
+                    <input type="password" id="password" name="password" placeholder="••••••••"
+                           required autocomplete="current-password">
+                    <span class="field-icon">🔒</span>
+                    <button type="button" class="eye-toggle" id="passwordToggle"
+                            aria-label="Show password" title="Show password">
+                        <svg viewBox="0 0 24 24" id="eyeIcon">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="options-row">
+                <label class="remember">
+                    <input type="checkbox" id="rememberMe" name="remember_me" value="1">
+                    <span class="checkbox-box"></span>
+                    ចងចាំការចូលប្រើ (Remember Me)
+                </label>
+                <span class="ssl-note">
+                    <span class="ssl-dot"></span>
+                    SSL 256-Bit Secure
+                </span>
+            </div>
+
+            <button type="submit" class="submit-btn" id="loginButton">
+                <span class="btn-lock">🔓</span>
+                <span id="loginButtonText">ចូលប្រើប្រព័ន្ធ</span>
+                <span class="btn-sep">•</span>
+                <span>Sign In</span>
+            </button>
+        </form>
+    </div>
+
+    <!-- ═════════════ TAB 2: QR CODE (NEW) ═════════════ -->
+    <div class="tab-panel" id="panel-qr" role="tabpanel">
+
+        <p class="qr-description">
+            ស្កេន ឬផ្ទុកឡើងរូបភាពកូដ QR ដែលបានផ្តល់ដោយអ្នកគ្រប់គ្រង
+            <br>
+            <span style="font-size:11px; color:var(--text-muted); font-family:'JetBrains Mono', monospace;">
+                Scan or upload the QR code given by your manager
+            </span>
+        </p>
+
+        <!-- Hidden file input -->
+        <input type="file" id="qrFileInput" accept="image/*"
+               onchange="handleQrFileSelect(event)">
+
+        <!-- Two big action buttons -->
+        <div class="qr-action-grid">
+            <button type="button" class="qr-action" onclick="startCameraScan()">
+                <span class="qr-action-icon">📸</span>
+                <span>
+                    ស្កេនដោយកាមេរ៉ា
+                    <span class="qr-action-label-en">Scan with camera</span>
+                </span>
+            </button>
+            <button type="button" class="qr-action" onclick="document.getElementById('qrFileInput').click()">
+                <span class="qr-action-icon">📁</span>
+                <span>
+                    ផ្ទុករូបភាព QR
+                    <span class="qr-action-label-en">Upload QR image</span>
+                </span>
+            </button>
+        </div>
+
+        <!-- Camera reader viewport -->
+        <div class="qr-reader-wrap" id="qrReaderWrap">
+            <div id="qr-reader"></div>
+        </div>
+
+        <!-- Cancel scan button -->
+        <button type="button" class="qr-cancel-btn" id="qrCancelBtn" onclick="stopCameraScan()">
+            ✕ បោះបង់ការស្កេន / Cancel scan
+        </button>
+
+        <!-- Result / status -->
+        <div class="qr-result" id="qrResult"></div>
+
+        <!-- Tips -->
+        <div class="qr-hints">
+            <div class="qr-hint-item">
+                <span class="hint-bullet">💡</span>
+                <span>ត្រូវប្រាកដថាកូដ QR ច្បាស់លាស់ និងនៅក្នុងស៊ុម</span>
+            </div>
+            <div class="qr-hint-item">
+                <span class="hint-bullet">🔒</span>
+                <span>កូដ QR មានព័ត៌មានគណនីផ្ទាល់ខ្លួន — មិនត្រូវចែករំលែកទេ</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact admin (outside form) -->
+    <div class="register-block">
+        <p class="register-prompt">មិនទាន់មានគណនីសម្រាប់សាលារបស់អ្នកទេ?</p>
+        <a href="javascript:void(0)" class="register-btn" role="button" tabindex="0"
+           onclick="openSupportModal(); return false;">
+            <span>📞</span>
+            <span>ទាក់ទងអ្នកគ្រប់គ្រងប្រព័ន្ធ</span>
+            <span class="arrow">→</span>
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-contact">
+        <span class="footer-label">ជំនួយបច្ចេកទេស៖</span>
+        <div class="contact-links">
+            <a class="contact-chip telegram" href="https://t.me/dev_sokna"
+               target="_blank" rel="noopener noreferrer">
+                <span class="c-icon">✈</span><span>Telegram</span>
+            </a>
+            <a class="contact-chip phone" href="tel:0883072535">
+                <span class="c-icon">📞</span><span>088 307 2535</span>
+            </a>
+        </div>
+    </div>
+</main>
+
+<!-- ═════════════ RESET MODAL ═════════════ -->
+<div class="modal-bg" id="resetModal" role="dialog" aria-modal="true">
+    <div class="modal">
+        <button type="button" class="modal-close" onclick="closeModal()" aria-label="Close">×</button>
+        <div class="modal-icon">🔑</div>
+        <h3>ស្នើសុំប្តូរពាក្យសម្ងាត់</h3>
+        <p class="modal-desc">សូមបំពេញព័ត៌មានខាងក្រោម។ អ្នកគ្រប់គ្រងនឹងពិនិត្យ និងផ្តល់ការអនុម័ត។</p>
+        <form id="resetForm" method="POST" action="">
+            <input type="hidden" name="action" value="reset_password">
+            <div class="field-group">
+                <label class="field-label" for="reset_fullname">
+                    <span class="lf-icon">👤</span> ឈ្មោះពេញ <span style="color:var(--accent)">*</span>
+                </label>
+                <div class="field-wrapper">
+                    <input type="text" id="reset_fullname" name="fullname" placeholder="Full name" required>
+                    <span class="field-icon">👤</span>
+                </div>
+            </div>
+            <div class="field-group">
+                <label class="field-label" for="reset_username">
+                    <span class="lf-icon">👤</span> ឈ្មោះអ្នកប្រើប្រាស់ <span style="color:var(--accent)">*</span>
+                </label>
+                <div class="field-wrapper">
+                    <input type="text" id="reset_username" name="username" placeholder="Username" required>
+                    <span class="field-icon">👤</span>
+                </div>
+            </div>
+            <div class="field-group">
+                <label class="field-label" for="reset_phone">
+                    <span class="lf-icon">📱</span> លេខទូរស័ព្ទ <span style="color:var(--accent)">*</span>
+                </label>
+                <div class="field-wrapper">
+                    <input type="tel" id="reset_phone" name="phone" placeholder="Phone number" required>
+                    <span class="field-icon">📱</span>
+                </div>
+            </div>
+            <div class="field-group">
+                <label class="field-label" for="reset_code">
+                    <span class="lf-icon">🔑</span> លេខកូដសំណើ <span style="color:var(--accent)">*</span>
+                </label>
+                <div class="field-wrapper">
+                    <input type="text" id="reset_code" name="code" placeholder="Request code" required>
+                    <span class="field-icon">🔑</span>
+                </div>
+            </div>
+            <div class="field-group">
+                <label class="field-label" for="reset_reason">
+                    <span class="lf-icon">📝</span> មូលហេតុ <span style="color:var(--accent)">*</span>
+                </label>
+                <div class="field-wrapper">
+                    <textarea id="reset_reason" name="reason" placeholder="Explain why you need a reset" required></textarea>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button type="submit" class="submit-btn" id="resetSubmitButton">
+                    <span>ដាក់សំណើ</span>
+                    <span class="btn-sep">•</span>
+                    <span>Submit</span>
+                </button>
+                <button type="button" class="btn-ghost" onclick="closeModal()">បោះបង់ / Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═════════════ CHECK STATUS MODAL ═════════════ -->
+<div class="modal-bg" id="checkStatusModal" role="dialog" aria-modal="true">
+    <div class="modal">
+        <button type="button" class="modal-close" onclick="closeCheckStatusModal()" aria-label="Close">×</button>
+        <div class="modal-icon">🔎</div>
+        <h3>ពិនិត្យស្ថានភាពសំណើ</h3>
+        <p class="modal-desc">បញ្ចូលលេខកូដសំណើ ដើម្បីពិនិត្យមើលស្ថានភាពនៃការស្នើសុំប្តូរពាក្យសម្ងាត់របស់អ្នក។</p>
+        <div class="field-group">
+            <label class="field-label" for="check_code">
+                <span class="lf-icon">🔑</span> លេខកូដសំណើ <span style="color:var(--accent)">*</span>
+            </label>
+            <div class="field-wrapper">
+                <input type="text" id="check_code" placeholder="e.g. RES-1234-ABCD">
+                <span class="field-icon">🔑</span>
+            </div>
+        </div>
+        <div id="statusResult" class="status-result"></div>
+        <div class="modal-buttons">
+            <button type="button" class="submit-btn" onclick="checkResetStatus()" id="checkBtn">
+                <span>ពិនិត្យ</span>
+                <span class="btn-sep">•</span>
+                <span>Check</span>
+            </button>
+            <button type="button" class="btn-ghost" onclick="closeCheckStatusModal()">បិទ / Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═════════════ SUPPORT MODAL ═════════════ -->
+<div class="modal-bg" id="supportModal" role="dialog" aria-modal="true">
+    <div class="modal">
+        <button type="button" class="modal-close" onclick="closeSupportModal()" aria-label="Close">×</button>
+        <div class="modal-icon">📞</div>
+        <h3>ទាក់ទងអ្នកគ្រប់គ្រងប្រព័ន្ធ</h3>
+        <p class="modal-desc">ប្រសិនបើអ្នកត្រូវការជំនួយ ឬមិនទាន់មានគណនី សូមទាក់ទងតាមរយៈព័ត៌មានខាងក្រោម៖</p>
+        <div class="contact-links" style="justify-content:center; margin-bottom:20px;">
+            <a class="contact-chip telegram" href="https://t.me/dev_sokna"
+               target="_blank" rel="noopener noreferrer">
+                <span class="c-icon">✈</span><span>Telegram</span>
+            </a>
+            <a class="contact-chip phone" href="tel:0883072535">
+                <span class="c-icon">📞</span><span>088 307 2535</span>
+            </a>
+        </div>
+        <div class="modal-buttons">
+            <button type="button" class="submit-btn" onclick="closeSupportModal()">
+                <span>យល់ព្រម</span>
+                <span class="btn-sep">•</span>
+                <span>OK</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function $(id) { return document.getElementById(id); }
+
+    /* ═══════════ TAB SWITCHING (NEW) ═══════════ */
+    function switchTab(name) {
+        // Hide all panels, deactivate all tabs
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.login-tab').forEach(t => {
+            t.classList.remove('active');
+            t.setAttribute('aria-selected', 'false');
+        });
+
+        // Activate selected
+        const panel = $('panel-' + name);
+        const tab = $('tab-' + name);
+        if (panel) panel.classList.add('active');
+        if (tab) {
+            tab.classList.add('active');
+            tab.setAttribute('aria-selected', 'true');
+        }
+
+        // Stop camera when leaving QR tab
+        if (name !== 'qr') {
+            stopCameraScan();
+        }
+
+        // Focus username when returning to credentials
+        if (name === 'credentials') {
+            setTimeout(() => $('username')?.focus(), 100);
+        }
+    }
+
+    /* ═══════════ PASSWORD SHOW / HIDE ═══════════ */
+    function togglePassword() {
+        const p = $("password");
+        const btn = $("passwordToggle");
+        const icon = $("eyeIcon");
+        if (!p || !btn || !icon) return;
+
+        if (p.type === "password") {
+            p.type = "text";
+            btn.setAttribute("aria-label", "Hide password");
+            btn.setAttribute("title", "Hide password");
+            icon.innerHTML = `
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+            `;
+        } else {
+            p.type = "password";
+            btn.setAttribute("aria-label", "Show password");
+            btn.setAttribute("title", "Show password");
+            icon.innerHTML = `
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            `;
+        }
+    }
+
+    /* Wire up password toggle */
+    document.addEventListener("DOMContentLoaded", () => {
+        $("passwordToggle")?.addEventListener("click", togglePassword);
+    });
+
+    /* ═══════════ LOGIN LOADING ═══════════ */
+    $("loginForm")?.addEventListener("submit", function () {
+        const b = $("loginButton"), t = $("loginButtonText");
+        if (!b) return;
+        b.disabled = true;
+        if (t) t.textContent = "កំពុងចូល...";
+    });
+
+    /* ═══════════ MODALS ═══════════ */
+    function openModal() {
+        const m = $("resetModal"); if (!m) return;
+        m.classList.add("active");
+        document.body.style.overflow = "hidden";
+        setTimeout(() => $("reset_fullname")?.focus(), 220);
+    }
+    function closeModal() {
+        const m = $("resetModal"); if (!m) return;
+        m.classList.remove("active");
+        restoreScroll();
+        $("resetForm")?.reset();
+        const b = $("resetSubmitButton");
+        if (b) b.disabled = false;
+    }
+    function openCheckStatusModal() {
+        const m = $("checkStatusModal"); if (!m) return;
+        m.classList.add("active");
+        document.body.style.overflow = "hidden";
+        const c = $("check_code"); if (c) c.value = "";
+        const r = $("statusResult"); if (r) { r.style.display = "none"; r.innerHTML = ""; }
+        setTimeout(() => $("check_code")?.focus(), 220);
+    }
+    function closeCheckStatusModal() {
+        const m = $("checkStatusModal"); if (!m) return;
+        m.classList.remove("active");
+        restoreScroll();
+    }
+    function openSupportModal() {
+        const m = $("supportModal"); if (!m) return;
+        m.classList.add("active");
+        document.body.style.overflow = "hidden";
+    }
+    function closeSupportModal() {
+        const m = $("supportModal"); if (!m) return;
+        m.classList.remove("active");
+        restoreScroll();
+    }
+    function restoreScroll() {
+        const anyOpen = ["resetModal","checkStatusModal","supportModal"].some(id =>
+            $(id)?.classList.contains("active"));
+        if (!anyOpen) document.body.style.overflow = "";
+    }
+
+    ["resetModal","checkStatusModal","supportModal"].forEach(id => {
+        $(id)?.addEventListener("click", e => {
+            if (e.target === e.currentTarget) {
+                if (id === "resetModal") closeModal();
+                else if (id === "checkStatusModal") closeCheckStatusModal();
+                else closeSupportModal();
+            }
+        });
+    });
+
+    document.querySelectorAll('.field-hint, .register-btn').forEach(el => {
+        el.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                el.click();
+            }
+        });
+    });
+
+    /* ═══════════ ALERTS ═══════════ */
+    function dismissLoginAlert() {
+        const a = $("loginAlert");
+        if (a) { a.className = "alert"; a.style.display = "none"; }
+    }
+
+    /* ═══════════════════════════════════════════
+       QR CODE LOGIN (NEW)
+       ═══════════════════════════════════════════ */
+    let html5QrScanner = null;
+
+    /* ── Show a QR status message ── */
+    function showQrResult(type, message) {
+        const el = $("qrResult");
+        if (!el) return;
+        el.className = "qr-result " + type;
+        el.innerHTML = message;
+    }
+
+    /* ── Clear QR status ── */
+    function clearQrResult() {
+        const el = $("qrResult");
+        if (!el) return;
+        el.className = "qr-result";
+        el.innerHTML = "";
+    }
+
+    /* ── Submit QR payload to backend ── */
+    async function submitQrPayload(qrText, sourceLabel) {
+        showQrResult("info", `🔎 កំពុងផ្ទៀងផ្ទាត់... (${sourceLabel})`);
+        try {
+            const resp = await fetch("/api/qr_login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ qr_data: qrText })
+            });
+            const data = await resp.json();
+
+            if (data.success) {
+                showQrResult("success", `✅ ${data.message} — កំពុងបញ្ជូនទៅ...`);
+                // Redirect after short delay
+                setTimeout(() => {
+                    window.location.href = data.redirect || "/dashboard";
+                }, 700);
+            } else {
+                showQrResult("error", `❌ ${data.message || "QR login failed"}`);
+            }
+        } catch (err) {
+            showQrResult("error", `❌ Network error: ${err.message}`);
+        }
+    }
+
+    /* ── Handle file upload ── */
+    async function handleQrFileSelect(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        // Check file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            showQrResult("error", "❌ រូបភាពធំពេក (អតិបរមា 5MB) / Image too large (max 5MB)");
+            event.target.value = "";
+            return;
+        }
+
+        showQrResult("info", "🔎 កំពុងអានកូដ QR... / Decoding QR code...");
+
+        // Client-side decode first (using html5-qrcode's helper)
+        try {
+            // Use scanFile API
+            const scanner = new Html5Qrcode("qr-reader", { verbose: false });
+            // Note: scanFile requires a file input element, so we use a temp approach:
+            // Actually, html5-qrcode has `scanFile` that accepts File or Blob
+            const decodedText = await scanner.scanFileV2
+                ? (await scanner.scanFileV2(file)).decodedText
+                : await scanner.scanFile(file, false);
+
+            if (decodedText) {
+                await submitQrPayload(decodedText, "uploaded image");
+                event.target.value = "";
+                return;
+            }
+        } catch (clientErr) {
+            // Client-side decode failed — fall back to server-side
+            console.warn("Client-side decode failed, trying server:", clientErr);
+        }
+
+        // Fallback: send raw file to server
+        try {
+            const formData = new FormData();
+            formData.append("qr_image", file);
+
+            const resp = await fetch("/api/qr_login", {
+                method: "POST",
+                body: formData
+            });
+            const data = await resp.json();
+
+            if (data.success) {
+                showQrResult("success", `✅ ${data.message} — កំពុងបញ្ជូនទៅ...`);
+                setTimeout(() => {
+                    window.location.href = data.redirect || "/dashboard";
+                }, 700);
+            } else {
+                showQrResult("error", `❌ ${data.message || "QR not recognized"}`);
+            }
+        } catch (err) {
+            showQrResult("error", `❌ ${err.message}`);
+        }
+
+        event.target.value = "";
+    }
+
+    /* ── Start camera scan ── */
+    async function startCameraScan() {
+        const wrap = $("qrReaderWrap");
+        const cancelBtn = $("qrCancelBtn");
+        const readerEl = $("qr-reader");
+        if (!wrap || !readerEl) return;
+
+        clearQrResult();
+
+        // Show scanner container
+        wrap.classList.add("active");
+        cancelBtn?.classList.add("active");
+
+        // Guard: html5-qrcode must be loaded
+        if (typeof Html5Qrcode === "undefined") {
+            showQrResult("error", "❌ QR scanner library not loaded. Please refresh the page.");
+            return;
+        }
+
+        // Stop any previous instance
+        if (html5QrScanner) {
+            try { await html5QrScanner.stop(); } catch (e) {}
+            html5QrScanner = null;
+        }
+
+        try {
+            html5QrScanner = new Html5Qrcode("qr-reader", { verbose: false });
+
+            const config = {
+                fps: 10,
+                qrbox: { width: 220, height: 220 },
+                aspectRatio: 1.0
+            };
+
+            await html5QrScanner.start(
+                { facingMode: "environment" },  // prefer back camera
+                config,
+                async (decodedText /*, decodedResult */) => {
+                    // Stop scan immediately on first success
+                    await stopCameraScan();
+                    await submitQrPayload(decodedText, "camera");
+                },
+                (errorMessage) => {
+                    // Ignore frame errors (they happen constantly)
+                }
+            );
+
+            showQrResult("info", "📷 សូមដាក់កូដ QR ក្នុងស៊ុម / Place QR code in the frame");
+        } catch (err) {
+            console.error("Camera start error:", err);
+            wrap.classList.remove("active");
+            cancelBtn?.classList.remove("active");
+
+            let msg = "❌ មិនអាចបើកកាមេរ៉ាបានទេ / Could not access camera.";
+            if (err && err.message) {
+                if (err.message.includes("NotAllowed") || err.message.includes("permission")) {
+                    msg = "❌ សូមអនុញ្ញាតការប្រើកាមេរ៉ា / Please allow camera permission.";
+                } else if (err.message.includes("NotFound") || err.message.includes("no camera")) {
+                    msg = "❌ រកមិនឃើញកាមេរ៉ា / No camera detected. Try uploading an image instead.";
+                }
+            }
+            showQrResult("error", msg);
+        }
+    }
+
+    /* ── Stop camera scan ── */
+    async function stopCameraScan() {
+        const wrap = $("qrReaderWrap");
+        const cancelBtn = $("qrCancelBtn");
+
+        if (html5QrScanner) {
+            try {
+                await html5QrScanner.stop();
+                await html5QrScanner.clear();
+            } catch (e) {
+                // Ignore — might already be stopped
+            }
+            html5QrScanner = null;
+        }
+
+        wrap?.classList.remove("active");
+        cancelBtn?.classList.remove("active");
+    }
+
+    /* ═══════════ CHECK RESET STATUS ═══════════ */
+    function checkResetStatus() {
+        const input = $("check_code"), out = $("statusResult"), btn = $("checkBtn");
+        if (!input || !out || !btn) return;
+        const code = input.value.trim();
+        if (!code) {
+            out.style.display = "block";
+            out.innerHTML = `<div class="result-error">សូមបញ្ចូលលេខកូដសំណើរបស់អ្នក។</div>`;
+            return;
+        }
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spin"></span>`;
+        fetch("/api/check_reset_status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ request_code: code })
+        })
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .then(data => {
+            out.style.display = "block";
+            if (data.success) {
+                const s = String(data.status || "").toLowerCase();
+                const cls = s === "approved" ? "approved" : s === "rejected" ? "rejected" : "pending";
+                const txt = cls.charAt(0).toUpperCase() + cls.slice(1);
+                let pass = "";
+                if (data.new_password) {
+                    pass = `<div class="new-pass"><small>New Password</small><strong>${esc(data.new_password)}</strong></div>`;
+                }
+                out.innerHTML = `
+                    <div class="status-card">
+                        <div style="margin-bottom:12px;"><span class="badge ${cls}">● ${txt}</span></div>
+                        <div class="status-row"><span>Status</span><strong>${esc(data.status || "")}</strong></div>
+                        <div class="status-row"><span>Code</span><strong>${esc(code)}</strong></div>
+                        ${pass}
+                    </div>`;
+            } else {
+                out.innerHTML = `<div class="result-error">${esc(data.message || "រកមិនឃើញសំណើ។")}</div>`;
+            }
+        })
+        .catch(() => {
+            out.style.display = "block";
+            out.innerHTML = `<div class="result-error">បញ្ហាបណ្តាញ។ សូមព្យាយាមម្តងទៀត។</div>`;
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = `<span>ពិនិត្យ</span><span class="btn-sep">•</span><span>Check</span>`;
+        });
+    }
+
+    function esc(v) {
+        return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;")
+            .replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+    }
+
+    /* ═══════════ KEYBOARD ═══════════ */
+    document.addEventListener("keydown", e => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+            e.preventDefault();
+            const m = $("checkStatusModal");
+            m?.classList.contains("active") ? closeCheckStatusModal() : openCheckStatusModal();
+        }
+        if (e.key === "Escape") {
+            closeModal(); closeCheckStatusModal(); closeSupportModal();
+            stopCameraScan();
+        }
+    });
+
+    $("check_code")?.addEventListener("keydown", e => {
+        if (e.key === "Enter") { e.preventDefault(); checkResetStatus(); }
+    });
+
+    $("resetForm")?.addEventListener("submit", function () {
+        const b = $("resetSubmitButton"); if (!b) return;
+        b.disabled = true;
+    });
+
+    /* ═══════════ REMEMBER TYPED USERNAME ═══════════ */
+    document.addEventListener("DOMContentLoaded", () => {
+        const userField = $("username");
+        if (userField) {
+            const saved = sessionStorage.getItem("cml_user");
+            if (saved) userField.value = saved;
+            userField.addEventListener("input", () => {
+                sessionStorage.setItem("cml_user", userField.value);
+            });
+        }
+        setTimeout(() => userField?.focus(), 300);
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,1102 @@
+{% extends "base.html" %}
+{% block title %}Admin Report - System Analytics{% endblock %}
+{% block content %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<style>
+    :root {
+        --cml-blue: #1a5276;
+        --cml-blue-light: #2e86c1;
+        --cml-blue-dark: #0e2f4a;
+        --cml-green: #27ae60;
+        --cml-green-light: #2ecc71;
+        --cml-orange: #f39c12;
+        --cml-red: #e74c3c;
+        --cml-purple: #8e44ad;
+        --cml-gray: #7f8c8d;
+        --cml-gray-light: #ecf0f1;
+        --cml-gray-dark: #2c3e50;
+        --cml-bg: #f0f4f8;
+        --cml-white: #ffffff;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+        --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
+        --shadow-lg: 0 8px 32px rgba(0,0,0,0.14);
+        --radius-sm: 8px;
+        --radius: 14px;
+        --radius-lg: 20px;
+        --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { font-family: 'Inter', 'Khmer OS Battambang', system-ui, sans-serif; box-sizing: border-box; }
+
+    .report-container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 20px 16px;
+        background: var(--cml-bg);
+        min-height: 100vh;
+    }
+
+    /* Header */
+    .report-header {
+        background: linear-gradient(135deg, var(--cml-blue-dark), var(--cml-blue), var(--cml-blue-light));
+        color: white;
+        padding: 28px 32px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 28px;
+        box-shadow: var(--shadow-lg);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+    .report-header::after {
+        content: '📈';
+        position: absolute;
+        right: 20px;
+        bottom: -15px;
+        font-size: 120px;
+        opacity: 0.06;
+        pointer-events: none;
+    }
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        position: relative;
+        z-index: 1;
+    }
+    .header-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: var(--radius);
+        background: rgba(255,255,255,0.12);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        flex-shrink: 0;
+    }
+    .header-text h2 {
+        font-weight: 800;
+        font-size: 1.6rem;
+        margin: 0;
+        line-height: 1.2;
+    }
+    .header-text p {
+        opacity: 0.85;
+        font-size: 0.85rem;
+        margin: 2px 0 0;
+    }
+    .header-badge {
+        display: inline-block;
+        padding: 3px 14px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 50px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-left: 8px;
+    }
+    .header-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        position: relative;
+        z-index: 1;
+    }
+    .header-actions .btn-action {
+        padding: 10px 20px;
+        border-radius: 50px;
+        border: 1px solid rgba(255,255,255,0.15);
+        background: rgba(255,255,255,0.08);
+        backdrop-filter: blur(8px);
+        color: white;
+        font-weight: 600;
+        font-size: 0.78rem;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+    }
+    .header-actions .btn-action:hover {
+        background: rgba(255,255,255,0.2);
+        transform: translateY(-2px);
+    }
+    .header-actions .btn-action.primary {
+        background: white;
+        color: var(--cml-blue-dark);
+        border-color: white;
+    }
+    .header-actions .btn-action.primary:hover {
+        background: #f0f4fe;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+
+    /* Stat Cards */
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 14px;
+        margin-bottom: 28px;
+    }
+    .stat-card {
+        background: var(--cml-white);
+        border-radius: var(--radius);
+        padding: 18px 20px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid rgba(255,255,255,0.6);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--cml-blue-light);
+    }
+    .stat-card .icon-wrapper {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        position: relative;
+        background: rgba(26, 82, 118, 0.08);
+        color: var(--cml-blue);
+    }
+    .stat-card .icon-wrapper.orange { background: rgba(243, 156, 18, 0.12); color: var(--cml-orange); }
+    .stat-card .icon-wrapper.green { background: rgba(39, 174, 96, 0.10); color: var(--cml-green); }
+    .stat-card .icon-wrapper.purple { background: rgba(142, 68, 173, 0.10); color: var(--cml-purple); }
+    .stat-card .icon-wrapper.red { background: rgba(231, 76, 60, 0.10); color: var(--cml-red); }
+    .stat-card .icon-wrapper.teal { background: rgba(26, 188, 156, 0.10); color: #1abc9c; }
+
+    .stat-card .label {
+        font-size: 0.6rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--cml-gray);
+        margin-bottom: 2px;
+    }
+    .stat-card .value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--cml-blue-dark);
+        line-height: 1.2;
+    }
+    .stat-card .trend {
+        font-size: 0.7rem;
+        font-weight: 600;
+        margin-top: 4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 10px;
+        border-radius: 50px;
+    }
+    .stat-card .trend.up { background: #e8f8ef; color: var(--cml-green); }
+    .stat-card .trend.down { background: #fde8e8; color: var(--cml-red); }
+    .stat-card .trend.neutral { background: var(--cml-gray-light); color: var(--cml-gray); }
+
+    /* Filters */
+    .filter-section {
+        background: var(--cml-white);
+        border-radius: var(--radius);
+        padding: 18px 24px;
+        margin-bottom: 28px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid rgba(255,255,255,0.6);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 14px 20px;
+    }
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1 1 160px;
+        min-width: 140px;
+    }
+    .filter-group label {
+        font-size: 0.6rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--cml-gray);
+    }
+    .filter-group input,
+    .filter-group select {
+        padding: 8px 14px;
+        border: 2px solid var(--cml-gray-light);
+        border-radius: var(--radius-sm);
+        font-size: 0.82rem;
+        background: var(--cml-bg);
+        outline: none;
+        transition: var(--transition);
+        width: 100%;
+        color: var(--cml-gray-dark);
+        cursor: pointer;
+    }
+    .filter-group input:focus,
+    .filter-group select:focus {
+        border-color: var(--cml-blue);
+        box-shadow: 0 0 0 4px rgba(26, 82, 118, 0.10);
+        background: var(--cml-white);
+    }
+    .filter-actions {
+        display: flex;
+        gap: 8px;
+        flex: 0 1 auto;
+        align-items: center;
+    }
+    .filter-actions .btn-filter,
+    .filter-actions .btn-clear {
+        padding: 8px 24px;
+        border: 0;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.78rem;
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .filter-actions .btn-filter {
+        background: var(--cml-blue);
+        color: white;
+    }
+    .filter-actions .btn-filter:hover {
+        background: var(--cml-blue-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(26, 82, 118, 0.3);
+    }
+    .filter-actions .btn-clear {
+        background: var(--cml-gray-light);
+        color: var(--cml-gray);
+    }
+    .filter-actions .btn-clear:hover { background: #d5dbdb; }
+
+    /* Charts */
+    .charts-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 28px;
+    }
+    .chart-box {
+        background: var(--cml-white);
+        border-radius: var(--radius);
+        padding: 20px 24px 16px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid rgba(255,255,255,0.6);
+    }
+    .chart-box h5 {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--cml-blue-dark);
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--cml-gray-light);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .chart-box h5 .sub-label {
+        font-size: 0.65rem;
+        font-weight: 400;
+        color: var(--cml-gray);
+    }
+    .chart-box .chart-container {
+        position: relative;
+        height: 220px;
+    }
+    .chart-box .chart-container canvas {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    /* Insights */
+    .insights-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 18px;
+        margin-bottom: 28px;
+    }
+    .insight-card {
+        background: var(--cml-white);
+        border-radius: var(--radius);
+        padding: 20px 22px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid rgba(255,255,255,0.6);
+        transition: var(--transition);
+    }
+    .insight-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+    }
+    .insight-card .insight-title {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--cml-gray);
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .insight-card .insight-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--cml-blue-dark);
+    }
+    .insight-card .insight-detail {
+        font-size: 0.75rem;
+        color: var(--cml-gray);
+        margin-top: 4px;
+    }
+    .insight-card .insight-bar {
+        margin-top: 10px;
+        height: 6px;
+        background: var(--cml-gray-light);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .insight-card .insight-bar .fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.8s ease;
+    }
+    .insight-card .insight-bar .fill.blue { background: var(--cml-blue); }
+    .insight-card .insight-bar .fill.green { background: var(--cml-green); }
+    .insight-card .insight-bar .fill.orange { background: var(--cml-orange); }
+    .insight-card .insight-bar .fill.purple { background: var(--cml-purple); }
+    .insight-card .insight-bar .fill.red { background: var(--cml-red); }
+
+    /* Table */
+    .table-container {
+        background: var(--cml-white);
+        border-radius: var(--radius);
+        padding: 20px 24px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid rgba(255,255,255,0.6);
+        margin-bottom: 28px;
+        overflow: hidden;
+    }
+    .table-container .table-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--cml-gray-light);
+    }
+    .table-container .table-header h5 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--cml-blue-dark);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .table-container .table-header .badge-count {
+        font-size: 0.65rem;
+        background: var(--cml-gray-light);
+        color: var(--cml-gray);
+        padding: 2px 14px;
+        border-radius: 50px;
+        font-weight: 600;
+    }
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .analytics-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.8rem;
+        min-width: 700px;
+    }
+    .analytics-table thead th {
+        padding: 10px 12px;
+        text-align: left;
+        font-size: 0.6rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--cml-gray);
+        border-bottom: 2px solid var(--cml-gray-light);
+        background: var(--cml-bg);
+        white-space: nowrap;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+    .analytics-table thead th:last-child { text-align: right; }
+    .analytics-table tbody td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #f0f3f8;
+        color: var(--cml-gray-dark);
+        vertical-align: middle;
+    }
+    .analytics-table tbody td:last-child { text-align: right; }
+    .analytics-table tbody tr:hover td { background: #f8fafc; }
+
+    .rank-badge {
+        font-weight: 800;
+        color: var(--cml-gray);
+        font-size: 0.7rem;
+        display: inline-block;
+        min-width: 22px;
+        text-align: center;
+    }
+    .rank-badge.gold { color: #f1c40f; }
+    .rank-badge.silver { color: #bdc3c7; }
+    .rank-badge.bronze { color: #e67e22; }
+
+    .progress-bar-mini {
+        width: 80px;
+        height: 5px;
+        background: var(--cml-gray-light);
+        border-radius: 4px;
+        overflow: hidden;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 6px;
+    }
+    .progress-bar-mini .fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.6s ease;
+    }
+    .progress-bar-mini .fill.blue { background: var(--cml-blue); }
+    .progress-bar-mini .fill.green { background: var(--cml-green); }
+    .progress-bar-mini .fill.orange { background: var(--cml-orange); }
+    .progress-bar-mini .fill.purple { background: var(--cml-purple); }
+
+    .location-tag {
+        display: inline-block;
+        padding: 2px 12px;
+        background: var(--cml-gray-light);
+        border-radius: 50px;
+        font-size: 0.7rem;
+        color: var(--cml-gray-dark);
+        margin: 2px 4px 2px 0;
+    }
+
+    .no-records-msg {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--cml-gray);
+    }
+    .no-records-msg .icon { font-size: 3rem; display: block; margin-bottom: 12px; }
+    .no-records-msg h4 { color: var(--cml-gray-dark); margin-bottom: 4px; }
+    .no-records-msg p { font-size: 0.85rem; }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .stat-grid { grid-template-columns: repeat(3, 1fr); }
+        .insights-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 992px) {
+        .charts-grid { grid-template-columns: 1fr; }
+        .insights-grid { grid-template-columns: 1fr 1fr; }
+        .report-header { padding: 22px 24px; }
+        .header-text h2 { font-size: 1.3rem; }
+        .filter-section { gap: 10px 14px; }
+        .filter-group { flex: 1 1 140px; min-width: 120px; }
+    }
+    @media (max-width: 768px) {
+        .report-container { padding: 12px 10px; }
+        .report-header { padding: 18px 18px; flex-direction: column; align-items: stretch; }
+        .header-left { flex-wrap: wrap; }
+        .header-actions { justify-content: stretch; }
+        .header-actions .btn-action { flex: 1; justify-content: center; font-size: 0.7rem; padding: 8px 12px; }
+        .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .stat-card { padding: 14px 14px; }
+        .stat-card .value { font-size: 1.5rem; }
+        .stat-card .icon-wrapper { width: 32px; height: 32px; font-size: 1rem; }
+        .insights-grid { grid-template-columns: 1fr; }
+        .filter-section { padding: 14px 16px; flex-direction: column; align-items: stretch; }
+        .filter-group { flex: 1 1 auto; min-width: 100%; }
+        .filter-actions { flex-wrap: wrap; }
+        .filter-actions .btn-filter,
+        .filter-actions .btn-clear { flex: 1; text-align: center; }
+        .table-container { padding: 14px 12px; }
+        .table-container .table-header { flex-direction: column; align-items: stretch; }
+        .analytics-table { font-size: 0.7rem; min-width: 600px; }
+        .analytics-table thead th,
+        .analytics-table tbody td { padding: 6px 8px; }
+        .chart-box { padding: 14px 14px 12px; }
+        .chart-box .chart-container { height: 170px; }
+    }
+    @media (max-width: 480px) {
+        .stat-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+        .header-text h2 { font-size: 1.1rem; }
+        .header-badge { font-size: 0.55rem; padding: 2px 10px; }
+    }
+</style>
+
+<div class="report-container">
+
+    <!-- HEADER -->
+    <header class="report-header no-print">
+        <div class="header-left">
+            <div class="header-icon">📈</div>
+            <div class="header-text">
+                <h2>
+                    System Analytics Report
+                    <span class="header-badge">Enterprise</span>
+                </h2>
+                <p>Strategic insights &amp; operational performance metrics</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            {# ✅ Opens the dedicated print page in a new tab, preserving filters #}
+            <a href="{{ url_for('admin_report_print') }}{% if request.query_string %}?{{ request.query_string.decode() }}{% endif %}"
+               target="_blank"
+               rel="noopener"
+               class="btn-action">🖨️ Print</a>
+            <button onclick="exportCSV()" class="btn-action">📥 Export CSV</button>
+            <a href="{{ url_for('admin_panel') }}" class="btn-action primary">← Admin Panel</a>
+        </div>
+    </header>
+
+    <!-- STATS -->
+    {% set total_records = member_data|sum(attribute='record_count')|default(0) %}
+    {% set total_samples = member_data|sum(attribute='total_patients')|default(0) %}
+    {% set total_specimens = member_data|sum(attribute='total_sampling')|default(0) %}
+    {% set total_moto = member_data|sum(attribute='total_moto_fee')|default(0) %}
+    {% set total_far = member_data|sum(attribute='total_far_away_fee')|default(0) %}
+    {% set total_fees = total_moto + total_far %}
+    {% set active_members = member_data|selectattr('status', 'eq', 'Active')|list|length if member_data else 0 %}
+    {% set total_members = member_data|length if member_data else 0 %}
+    {% set avg_per_member = (total_records / total_members)|round(1) if total_members > 0 else 0 %}
+    {% set efficiency_ratio = (total_specimens / total_records)|round(1) if total_records > 0 else 0 %}
+
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="icon-wrapper"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
+            <div class="label">Total Records</div>
+            <div class="value">{{ total_records }}</div>
+            <div class="trend up">▲ {{ avg_per_member }} avg per member</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon-wrapper orange"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>
+            <div class="label">Total Samples</div>
+            <div class="value">{{ total_samples }}</div>
+            <div class="trend up">▲ {{ "%.1f"|format(total_samples / total_records if total_records > 0 else 0) }} per record</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon-wrapper purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <div class="label">Total Specimens</div>
+            <div class="value">{{ total_specimens }}</div>
+            <div class="trend up">▲ {{ efficiency_ratio }} per record</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon-wrapper green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+            <div class="label">Total Revenue</div>
+            <div class="value">{{ total_fees|format_currency }}</div>
+            <div class="trend up">▲ {{ (total_fees / total_records)|round(0) if total_records > 0 else 0|format_currency }} avg</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon-wrapper red"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <div class="label">Active Members</div>
+            <div class="value">{{ active_members }}/{{ total_members }}</div>
+            <div class="trend {% if total_members > 0 and active_members / total_members * 100 > 50 %}up{% else %}down{% endif %}">
+                {{ ((active_members / total_members * 100)|round(0)) if total_members > 0 else 0 }}% engagement
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="icon-wrapper teal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+            <div class="label">Avg Response Time</div>
+            <div class="value">{{ avg_response_time|default('12m') }}</div>
+            <div class="trend up">▲ {{ avg_response_trend|default('+8%') }}</div>
+        </div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filter-section no-print" id="filterSection">
+        <div class="filter-group">
+            <label>📅 Date From</label>
+            <input type="date" id="dateFrom" value="{{ date_from or '' }}">
+        </div>
+        <div class="filter-group">
+            <label>📅 Date To</label>
+            <input type="date" id="dateTo" value="{{ date_to or '' }}">
+        </div>
+        <div class="filter-group">
+            <label>👤 Collector</label>
+            <select id="filterMember">
+                <option value="">All Collectors</option>
+                {% for m in all_members %}
+                    <option value="{{ m.username }}" {% if filter_member == m.username %}selected{% endif %}>
+                        {{ m.full_name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>📍 Location</label>
+            <select id="filterLocation">
+                <option value="">All Locations</option>
+                {% for loc in all_facilities %}
+                    <option value="{{ loc }}" {% if filter_location == loc %}selected{% endif %}>
+                        {{ loc }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>🧪 Sample Type</label>
+            <select id="filterSampleType">
+                <option value="">All Types</option>
+                {% for stype in all_sample_types %}
+                    <option value="{{ stype }}" {% if filter_sample_type == stype %}selected{% endif %}>
+                        {{ stype }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>📊 Report Type</label>
+            <select id="reportType">
+                <option value="overview" {% if report_type =='overview' or not report_type %}selected{% endif %}>Overview</option>
+                <option value="financial" {% if report_type =='financial' %}selected{% endif %}>Financial</option>
+                <option value="performance" {% if report_type =='performance' %}selected{% endif %}>Performance</option>
+                <option value="locations" {% if report_type =='locations' %}selected{% endif %}>By Location</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>⏱️ Period</label>
+            <select id="periodSelect">
+                <option value="7" {% if period =='7' %}selected{% endif %}>Last 7 Days</option>
+                <option value="30" {% if period =='30' %}selected{% endif %}>Last 30 Days</option>
+                <option value="60" {% if period =='60' %}selected{% endif %}>Last 60 Days</option>
+                <option value="90" {% if period =='90' %}selected{% endif %}>Last 90 Days</option>
+                <option value="180" {% if period =='180' %}selected{% endif %}>Last 6 Months</option>
+                <option value="365" {% if period =='365' %}selected{% endif %}>Last Year</option>
+                {# ✅ Default to All Time so the report is never empty on first load #}
+                <option value="all" {% if period =='all' or not period %}selected{% endif %}>All Time</option>
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button class="btn-filter" onclick="applyFilters()">🔍 Apply Filters</button>
+            <button class="btn-clear" onclick="clearFilters()">🗑️ Clear All</button>
+        </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="charts-grid no-print">
+        <div class="chart-box">
+            <h5>
+                📈 Monthly Activity Trends
+                <span class="sub-label">Records vs Samples</span>
+            </h5>
+            <div class="chart-container">
+                <canvas id="trendsChart"></canvas>
+            </div>
+        </div>
+        <div class="chart-box">
+            <h5>
+                💰 Revenue Breakdown
+                <span class="sub-label">Moto vs Far-away Fees</span>
+            </h5>
+            <div class="chart-container">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- INSIGHTS -->
+    <div class="insights-grid no-print">
+        <div class="insight-card">
+            <div class="insight-title">🏆 Top Performer</div>
+            <div class="insight-value">{{ top_performer.full_name if top_performer else 'N/A' }}</div>
+            <div class="insight-detail">{{ top_performer.record_count if top_performer else 0 }} records · {{ top_performer.total_sampling if top_performer else 0 }} specimens</div>
+            <div class="insight-bar"><div class="fill blue" style="width: 100%;"></div></div>
+        </div>
+        <div class="insight-card">
+            <div class="insight-title">📍 Busiest Location</div>
+            <div class="insight-value">{{ busiest_location.name if busiest_location else 'N/A' }}</div>
+            <div class="insight-detail">{{ busiest_location.count if busiest_location else 0 }} visits · {{ busiest_location.specimens if busiest_location else 0 }} specimens</div>
+            <div class="insight-bar"><div class="fill orange" style="width: 85%;"></div></div>
+        </div>
+        <div class="insight-card">
+            <div class="insight-title">🧪 Most Collected Sample</div>
+            <div class="insight-value">{{ top_sample_type.type if top_sample_type else 'N/A' }}</div>
+            <div class="insight-detail">{{ top_sample_type.count if top_sample_type else 0 }} total collections</div>
+            <div class="insight-bar"><div class="fill green" style="width: 92%;"></div></div>
+        </div>
+        <div class="insight-card">
+            <div class="insight-title">📊 Efficiency Ratio</div>
+            <div class="insight-value">{{ efficiency_ratio }}:1</div>
+            <div class="insight-detail">Specimens per record</div>
+            <div class="insight-bar">
+                <div class="fill purple" style="width: {{ (efficiency_ratio / 5 * 100)|round(0) if efficiency_ratio < 5 else 100 }}%;"></div>
+            </div>
+        </div>
+        <div class="insight-card">
+            <div class="insight-title">👨‍⚕️ Top Doctor Referrals</div>
+            <div class="insight-value">{{ top_doctor.name if top_doctor else 'N/A' }}</div>
+            <div class="insight-detail">{{ top_doctor.count if top_doctor else 0 }} referrals</div>
+            <div class="insight-bar"><div class="fill blue" style="width: 78%;"></div></div>
+        </div>
+        <div class="insight-card">
+            <div class="insight-title">⏱️ Avg Response Time</div>
+            <div class="insight-value">{{ avg_response_time|default('12m') }}</div>
+            <div class="insight-detail">Call to arrival</div>
+            <div class="insight-bar"><div class="fill green" style="width: 65%;"></div></div>
+        </div>
+    </div>
+
+    <!-- PERFORMANCE TABLE -->
+    <div class="table-container">
+        <div class="table-header">
+            <h5>
+                📊 Member Performance Metrics
+                <span class="badge-count">
+                    {% if filter_member %}
+                        {% if filter_member_obj %}
+                            {% set found_member_data = None %}
+                            {% for m in member_data %}
+                                {% if m.id == filter_member_obj.id %}
+                                    {% set found_member_data = m %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if found_member_data %}
+                                {% set all_sorted_for_rank = member_data|sort(attribute='record_count', reverse=true) %}
+                                {% set member_rank = 0 %}
+                                {% for m in all_sorted_for_rank %}
+                                    {% if m.id == found_member_data.id %}
+                                        {% set member_rank = loop.index %}
+                                    {% endif %}
+                                {% endfor %}
+                                Showing: <strong>{{ filter_member_display if filter_member_display else found_member_data.full_name }}</strong>
+                                {% if found_member_data.record_count > 0 %}
+                                    (Rank #{{ member_rank }})
+                                {% endif %}
+                            {% else %}
+                                Showing: <strong>{{ filter_member_display if filter_member_display else filter_member }}</strong>
+                            {% endif %}
+                        {% else %}
+                            Showing: <strong>{{ filter_member }}</strong> (Not found)
+                        {% endif %}
+                    {% else %}
+                        {{ member_data|length if member_data else 0 }} members
+                    {% endif %}
+                </span>
+            </h5>
+            <span style="font-size:0.7rem; color:var(--cml-gray);">
+                {% if filter_member %}
+                    Filtered by: <strong>{{ filter_member_display if filter_member_display else filter_member }}</strong>
+                {% else %}
+                    Sorted by contribution
+                {% endif %}
+            </span>
+        </div>
+        <div class="table-wrapper">
+            <table class="analytics-table" id="performanceTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Member</th>
+                        <th>Records</th>
+                        <th style="text-align:center;">Samples</th>
+                        <th style="text-align:center;">Specimens</th>
+                        <th style="text-align:center;">Efficiency</th>
+                        <th style="text-align:center;">Revenue</th>
+                        <th style="text-align:right;">Activity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if member_data %}
+                        {% set all_sorted = member_data|sort(attribute='record_count', reverse=true) %}
+
+                        {% set rank_map = {} %}
+                        {% for m in all_sorted %}
+                            {% set _ = rank_map.update({m.id: loop.index}) %}
+                        {% endfor %}
+
+                        {% if filter_member_obj %}
+                            {% set found_member_data = None %}
+                            {% for m in member_data %}
+                                {% if m.id == filter_member_obj.id %}
+                                    {% set found_member_data = m %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if found_member_data and found_member_data.record_count > 0 %}
+                                {% set display_data = [found_member_data] %}
+                            {% else %}
+                                {% set display_data = [] %}
+                            {% endif %}
+                        {% else %}
+                            {% set display_data = member_data|selectattr('record_count', '>', 0)|list %}
+                            {% if not display_data %}
+                                {% set display_data = member_data %}
+                            {% endif %}
+                        {% endif %}
+
+                        {% if display_data %}
+                            {% set sorted_display = display_data|sort(attribute='record_count', reverse=true) %}
+
+                            {% for m in sorted_display %}
+                                {% set overall_rank = rank_map.get(m.id, loop.index) %}
+                                <tr>
+                                    <td>
+                                        <span class="rank-badge
+                                            {% if overall_rank == 1 %}gold
+                                            {% elif overall_rank == 2 %}silver
+                                            {% elif overall_rank == 3 %}bronze
+                                            {% endif %}">
+                                            {{ overall_rank }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong>{{ m.full_name }}</strong>
+                                        {% if m.is_online %}
+                                        <span style="color:var(--cml-green); font-size:0.6rem;">● Online</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ m.record_count|default(0) }}</td>
+                                    <td style="text-align:center;">{{ m.total_patients|default(0) }}</td>
+                                    <td style="text-align:center;">{{ m.total_sampling|default(0) }}</td>
+                                    <td style="text-align:center;">
+                                        {% set eff = (m.total_sampling|default(0) / m.record_count|default(1))|round(1) if m.record_count > 0 else 0 %}
+                                        {{ eff }}
+                                        <div class="progress-bar-mini">
+                                            <div class="fill blue" style="width: {{ (eff / 5 * 100)|round(0) if eff < 5 else 100 }}%;"></div>
+                                        </div>
+                                    </td>
+                                    <td style="text-align:center;">
+                                        {{ (m.total_moto_fee|default(0) + m.total_far_away_fee|default(0))|format_currency }}
+                                    </td>
+                                    <td style="text-align:right; font-size:0.7rem; color:var(--cml-gray);">
+                                        {{ m.last_record|default('Never') }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" style="text-align:center; padding:30px; color:var(--cml-gray);">
+                                    <div class="no-records-msg">
+                                        <span class="icon">🔍</span>
+                                        <h4>No records found for this collector</h4>
+                                        <p>The selected collector has no records in the current filter period.</p>
+                                        <p style="font-size:0.75rem; margin-top:8px; color:var(--cml-gray);">
+                                            Try adjusting the date range or period filter.
+                                        </p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" style="text-align:center; padding:30px; color:var(--cml-gray);">
+                                <div class="no-records-msg">
+                                    <span class="icon">📊</span>
+                                    <h4>No data available</h4>
+                                    <p>No records found matching the current filters.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- LOCATION TABLE -->
+    <div class="table-container">
+        <div class="table-header">
+            <h5>
+                📍 Location &amp; Sample Type Breakdown
+                <span class="badge-count">{{ locations|length if locations else 0 }} locations</span>
+            </h5>
+        </div>
+        <div class="table-wrapper">
+            <table class="analytics-table" id="locationTable">
+                <thead>
+                    <tr>
+                        <th>Location / Sample Type</th>
+                        <th style="text-align:center;">Visits</th>
+                        <th style="text-align:center;">Specimens</th>
+                        <th style="text-align:center;">Avg per Visit</th>
+                        <th style="text-align:right;">Contribution</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if locations %}
+                        {% for loc in locations[:10] %}
+                        <tr>
+                            <td>
+                                <span class="location-tag">{{ loc.name|default('Unknown') }}</span>
+                            </td>
+                            <td style="text-align:center;">{{ loc.count|default(0) }}</td>
+                            <td style="text-align:center;">{{ loc.specimens|default(0) }}</td>
+                            <td style="text-align:center;">
+                                {{ (loc.specimens|default(0) / loc.count|default(1))|round(1) if loc.count > 0 else 0 }}
+                            </td>
+                            <td style="text-align:right;">
+                                <div class="progress-bar-mini">
+                                    <div class="fill orange" style="width: {{ (loc.count / locations[0].count * 100)|round(0) if locations and locations[0].count > 0 else 0 }}%;"></div>
+                                </div>
+                                {{ ((loc.count / locations[0].count * 100)|round(0)) if locations and locations[0].count > 0 else 0 }}%
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" style="text-align:center; padding:30px; color:var(--cml-gray);">
+                                <div class="no-records-msg">
+                                    <span class="icon">📍</span>
+                                    <h4>No location data</h4>
+                                    <p>No location data available for the current filters.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // ===== APPLY FILTERS =====
+    function applyFilters() {
+        const from = document.getElementById('dateFrom').value;
+        const to = document.getElementById('dateTo').value;
+        const member = document.getElementById('filterMember').value;
+        const location = document.getElementById('filterLocation').value;
+        const sampleType = document.getElementById('filterSampleType').value;
+        const type = document.getElementById('reportType').value;
+        const period = document.getElementById('periodSelect').value;
+
+        const params = new URLSearchParams();
+        if (from) params.append('from', from);
+        if (to) params.append('to', to);
+        if (member) params.append('member', member);
+        if (location) params.append('location', location);
+        if (sampleType) params.append('sample_type', sampleType);
+        if (type && type !== 'overview') params.append('type', type);
+        if (period) params.append('period', period);
+
+        window.location.href = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+    }
+
+    // ===== CLEAR FILTERS =====
+    function clearFilters() {
+        window.location.href = window.location.pathname;
+    }
+
+    // ===== ENTER KEY SUPPORT =====
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            const active = document.activeElement;
+            if (active && active.closest('#filterSection')) {
+                e.preventDefault();
+                applyFilters();
+            }
+        }
+    });
+
+    // ===== CHARTS =====
+    document.addEventListener('DOMContentLoaded', function () {
+        const chartLabels = {{ chart_labels|tojson|safe if chart_labels else '["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]' }};
+        const chartRecords = {{ chart_records|tojson|safe if chart_records else '[0,0,0,0,0,0,0,0,0,0,0,0]' }};
+        const chartSamples = {{ chart_samples|tojson|safe if chart_samples else '[0,0,0,0,0,0,0,0,0,0,0,0]' }};
+        const chartMoto = {{ chart_moto|tojson|safe if chart_moto else '[0,0,0,0,0,0,0,0,0,0,0,0]' }};
+        const chartFar = {{ chart_far|tojson|safe if chart_far else '[0,0,0,0,0,0,0,0,0,0,0,0]' }};
+
+        const ctx1 = document.getElementById('trendsChart');
+        if (ctx1) {
+            new Chart(ctx1.getContext('2d'), {
+                type: 'line',
+                data: { labels: chartLabels, datasets: [
+                    { label: 'Records', data: chartRecords, borderColor: '#1a5276', backgroundColor: 'rgba(26, 82, 118, 0.05)', fill: true, tension: 0.3, pointRadius: 3 },
+                    { label: 'Samples', data: chartSamples, borderColor: '#8e44ad', backgroundColor: 'rgba(142, 68, 173, 0.05)', fill: true, tension: 0.3, pointRadius: 3 }
+                ]},
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { boxWidth: 12, padding: 10, font: { size: 10 } } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { font: { size: 9 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
+                        x: { ticks: { font: { size: 9 } } }
+                    }
+                }
+            });
+        }
+
+        const ctx2 = document.getElementById('revenueChart');
+        if (ctx2) {
+            new Chart(ctx2.getContext('2d'), {
+                type: 'bar',
+                data: { labels: chartLabels, datasets: [
+                    { label: 'Moto Fees', data: chartMoto, backgroundColor: 'rgba(26, 82, 118, 0.7)', borderColor: '#1a5276', borderWidth: 2, borderRadius: 4 },
+                    { label: 'Far-away Fees', data: chartFar, backgroundColor: 'rgba(243, 156, 18, 0.7)', borderColor: '#f39c12', borderWidth: 2, borderRadius: 4 }
+                ]},
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { boxWidth: 12, padding: 10, font: { size: 10 } } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { font: { size: 9 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
+                        x: { ticks: { font: { size: 9 } } }
+                    }
+                }
+            });
+        }
+    });
+
+    // ===== EXPORT CSV =====
+    function exportCSV() {
+        const table = document.getElementById('performanceTable');
+        if (!table) return;
+        let csv = [];
+        const headers = ['Rank', 'Member', 'Records', 'Samples', 'Specimens', 'Efficiency', 'Revenue', 'Last Active'];
+        csv.push(headers.join(','));
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            const rowData = [];
+            cells.forEach(cell => {
+                let text = cell.textContent.trim().replace(/\s+/g, ' ');
+                if (text.includes(',')) text = '"' + text + '"';
+                rowData.push(text);
+            });
+            csv.push(rowData.join(','));
+        });
+        const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'admin_analytics_{{ today.strftime("%Y%m%d") if today else "report" }}.csv';
+        link.click();
+    }
+</script>
+
+{% endblock %}

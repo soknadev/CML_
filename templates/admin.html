@@ -1,0 +1,1956 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - CMS{% endblock %}
+
+{% block content %}
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Battambang:wght@400;700&display=swap');
+
+    /* ═══════════════════════════════════════════════════════════
+       FIX: Modal must be ABOVE navbar — no dimming behind it
+       ═══════════════════════════════════════════════════════════ */
+    body.modal-open-custom {
+        overflow: hidden !important;
+    }
+
+    /* ❌ REMOVED the ::before dimming layer that was dimming modals */
+
+    :root {
+        --cml-blue: #2b5d8d;
+        --cml-dark-blue: #1a3f5f;
+        --cml-light-blue: #eef4fa;
+        --cml-glow: rgba(43, 93, 141, 0.18);
+        --page-bg: #f4f7fc;
+        --card-bg: #ffffff;
+        --text-primary: #0b1a2b;
+        --text-secondary: #2d3f53;
+        --text-muted: #6b7a8f;
+        --border-light: #e9edf4;
+        --border-focus: #2b5d8d;
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+        --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 16px 56px rgba(0, 0, 0, 0.08);
+        --shadow-xl: 0 24px 80px rgba(0, 0, 0, 0.12);
+        --radius-sm: 8px;
+        --radius-md: 14px;
+        --radius-lg: 20px;
+        --transition-fast: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-smooth: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        --khmer-font: 'Inter', 'Khmer OS Battambang', 'Battambang', 'Kantumruy Pro', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+        background: var(--page-bg);
+        font-family: var(--khmer-font);
+        color: var(--text-primary);
+    }
+
+    h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, select, textarea, th, td {
+        font-family: inherit;
+    }
+
+    /* ═══════ STAT CARDS ═══════ */
+    .stat-card {
+        position: relative;
+        overflow: hidden;
+        padding: 18px 20px;
+        border-radius: var(--radius-md);
+        background: var(--card-bg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+        min-height: 110px;
+        display: flex;
+        align-items: center;
+    }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .stat-card .stat-content { display: flex; align-items: center; justify-content: space-between; width: 100%; position: relative; z-index: 2; }
+    .stat-card .stat-label { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 2px; }
+    .stat-card .stat-value { font-size: 28px; font-weight: 800; line-height: 1.1; color: var(--text-primary); }
+    .stat-card .stat-icon {
+        display: flex; align-items: center; justify-content: center;
+        width: 44px; height: 44px; border-radius: 12px; font-size: 20px; flex-shrink: 0;
+        background: var(--cml-light-blue); color: var(--cml-blue);
+        transition: transform var(--transition-smooth);
+    }
+    .stat-card:hover .stat-icon { transform: scale(1.08) rotate(3deg); }
+    .stat-card.blue .stat-icon { background: #e0edfc; color: #1a5a8a; }
+    .stat-card.green .stat-icon { background: #e3f5ec; color: #0b7a4a; }
+    .stat-card.purple .stat-icon { background: #ede7f8; color: #6d3b9b; }
+    .stat-card.amber .stat-icon { background: #fdf0e0; color: #b45f1a; }
+
+    /* ═══════ PAGE HEADER ═══════ */
+    .page-header {
+        position: relative;
+        background: linear-gradient(135deg, var(--cml-dark-blue) 0%, var(--cml-blue) 100%);
+        border-radius: var(--radius-lg);
+        padding: 28px 36px;
+        margin-bottom: 28px;
+        box-shadow: var(--shadow-lg);
+        color: #ffffff;
+        overflow: hidden;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+    }
+    .page-header::after {
+        content: "CMS";
+        position: absolute; right: -10px; bottom: -30px;
+        font-size: 140px; font-weight: 900;
+        color: rgba(255, 255, 255, 0.03);
+        pointer-events: none; letter-spacing: -5px; line-height: 1;
+    }
+    .page-header-main { display: flex; align-items: center; gap: 20px; z-index: 1; }
+    .page-header-icon {
+        display: flex; align-items: center; justify-content: center;
+        width: 60px; height: 60px; border-radius: 16px;
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        font-size: 28px; color: #ffffff; flex-shrink: 0;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+    .page-header-text { display: flex; flex-direction: column; gap: 6px; }
+    .page-header-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .page-header h3 { margin: 0; font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; line-height: 1.1; }
+    .page-header-badge {
+        background: rgba(255, 255, 255, 0.18); color: #ffffff;
+        font-size: 11px; padding: 4px 12px; border-radius: 20px;
+        font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+        backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .page-header p { margin: 0; color: rgba(255, 255, 255, 0.8); font-size: 14px; font-weight: 400; }
+    .page-header-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; z-index: 1; }
+
+    .btn-primary-custom, .btn-report {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        padding: 12px 22px; border: 0; border-radius: var(--radius-sm);
+        font-size: 13px; font-weight: 700; color: #fff;
+        text-decoration: none; cursor: pointer;
+        transition: all var(--transition-fast);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        white-space: nowrap;
+    }
+    .btn-primary-custom { background: #ffffff; color: var(--cml-dark-blue); }
+    .btn-primary-custom:hover {
+        background: #f0f4f8; color: var(--cml-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    }
+    .btn-report {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: #ffffff;
+    }
+    .btn-report:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        color: #fff;
+    }
+
+    /* ═══════ MEMBER CARD ═══════ */
+    .member-management-card {
+        background: var(--card-bg);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        overflow: hidden;
+    }
+    .member-card-header {
+        display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+        gap: 12px 16px; padding: 16px 20px;
+        background: linear-gradient(135deg, #fafcff, #f2f7fe);
+        border-bottom: 1px solid var(--border-light);
+    }
+    .member-title-wrapper { display: flex; align-items: center; gap: 12px; }
+    .member-title-icon {
+        display: flex; align-items: center; justify-content: center;
+        width: 40px; height: 40px; border-radius: 12px;
+        background: linear-gradient(135deg, var(--cml-blue), var(--cml-dark-blue));
+        color: #fff; font-size: 18px; flex-shrink: 0;
+    }
+    .member-card-header h5 { margin: 0; font-size: 16px; font-weight: 800; color: var(--text-primary); }
+    .member-card-header p { margin: 2px 0 0; font-size: 12px; color: var(--text-muted); }
+    .member-toolbar {
+        display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+        gap: 10px 16px; padding: 12px 20px;
+        background: #fafbfe; border-bottom: 1px solid var(--border-light);
+    }
+    .member-search { position: relative; flex: 1 1 220px; max-width: 320px; }
+    .member-search .search-icon {
+        position: absolute; top: 50%; left: 12px; transform: translateY(-50%);
+        color: #9aa8b9; font-size: 14px; pointer-events: none;
+    }
+    .member-search input {
+        width: 100%; padding: 8px 12px 8px 36px;
+        border: 1px solid var(--border-light); border-radius: var(--radius-sm);
+        background: #fff; font-size: 13px; color: var(--text-primary);
+        outline: none; transition: all var(--transition-fast);
+    }
+    .member-search input:focus {
+        border-color: var(--border-focus);
+        box-shadow: 0 0 0 3px var(--cml-glow);
+    }
+    .member-count { font-size: 13px; color: var(--text-muted); }
+    .member-count strong { color: var(--cml-blue); font-weight: 700; }
+
+    /* ═══════ TABLE ═══════ */
+    .member-table-wrapper {
+        width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; background: #fff;
+    }
+    .member-table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+    .member-table thead th {
+        padding: 12px 14px; background: #f8fafd; color: #5a6d82;
+        font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+        text-transform: uppercase; border-bottom: 2px solid var(--border-light);
+        text-align: left; position: sticky; top: 0; z-index: 10;
+    }
+    .member-table thead th.text-center { text-align: center; }
+    .member-table thead th:last-child { text-align: right; }
+    .member-table tbody td {
+        padding: 10px 14px; border-bottom: 1px solid #f0f3f8;
+        color: var(--text-secondary); vertical-align: middle;
+        transition: background var(--transition-fast);
+    }
+    .member-table tbody tr:hover td { background: #f6faff; }
+    .member-info { display: flex; align-items: center; gap: 10px; }
+    .profile-img-sm {
+        width: 36px; height: 36px; border-radius: 50%;
+        object-fit: cover; border: 2px solid #e9edf4;
+        background: #eef2f6; flex-shrink: 0;
+    }
+    .member-name { font-weight: 700; color: var(--text-primary); font-size: 13px; }
+    .member-username { font-size: 11px; color: #94a8bb; }
+
+    .role-badge, .status-badge, .records-badge, .samples-badge, .sampling-badge {
+        display: inline-flex; align-items: center; justify-content: center;
+        padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+    }
+    .role-admin { background: #fee9e7; color: #b33a34; }
+    .role-member { background: #eef2f6; color: #4a5b6e; }
+    .status-active { background: #e1f5ec; color: #0b7a4a; }
+    .status-inactive { background: #fee9e7; color: #b33a34; }
+    .records-badge { background: #e2edfc; color: #1a5a8a; }
+    .samples-badge { background: #ede7f8; color: #6d3b9b; }
+    .sampling-badge { background: #fdf0e0; color: #b45f1a; }
+
+    .member-actions { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+    .member-action {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 30px; height: 30px; border: 0; border-radius: var(--radius-sm);
+        color: #fff; font-size: 13px; cursor: pointer; text-decoration: none;
+        flex-shrink: 0;
+        transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+    .member-action:hover {
+        transform: translateY(-2px) scale(1.08);
+        filter: brightness(1.08);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        color: #fff;
+    }
+    .member-action:active { transform: translateY(0) scale(0.96); }
+    .member-action.view { background: #10b981; }
+    .member-action.qr { background: #0ea5e9; }
+    .member-action.edit { background: #f59e0b; }
+    .member-action.toggle { background: #3b82f6; }
+    .member-action.reset { background: #8b5cf6; }
+    .member-action.delete { background: #ef4444; }
+
+    /* SVG icon sizing for member action buttons */
+    .member-action svg {
+        display: block;
+        width: 15px;
+        height: 15px;
+        color: #fff;
+        flex-shrink: 0;
+        pointer-events: none;
+    }
+
+    .empty-members { padding: 40px 20px; text-align: center; color: var(--text-muted); }
+
+    /* ═══════ MODAL OVERLAY — Z-INDEX FIX (above navbar) ═══════ */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 2147483000 !important;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 80px 20px 20px;
+        overflow-y: auto;
+        background: rgba(11, 26, 43, 0.55);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-overlay .modal-box,
+    .modal-overlay .records-modal {
+        position: relative;
+        z-index: 2147483001;
+        margin: auto;
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+    }
+    .modal-box {
+        width: 90%; max-width: 560px;
+        background: #fff; border-radius: var(--radius-md); box-shadow: var(--shadow-xl);
+        animation: modalIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    @keyframes modalIn {
+        from { opacity: 0; transform: translateY(20px) scale(0.97); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal-header-custom {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 18px 24px; color: #fff;
+        font-size: 16px; font-weight: 700;
+        border-radius: var(--radius-md) var(--radius-md) 0 0;
+    }
+    .modal-header-custom.add { background: linear-gradient(135deg, var(--cml-blue), var(--cml-dark-blue)); }
+    .modal-header-custom.edit { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .modal-header-custom.delete { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .modal-header-custom.reset { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    .modal-header-custom.qr { background: linear-gradient(135deg, #0ea5e9, #0369a1); }
+    .modal-header-custom.success { background: linear-gradient(135deg, #10b981, #059669); }
+    .modal-header-custom span { font-size: 16px; font-weight: 700; color: #fff; }
+
+    .modal-header-icon-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .modal-header-icon-group svg {
+        display: block;
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+    }
+
+    .close-modal-btn {
+        display: flex; align-items: center; justify-content: center;
+        width: 32px; height: 32px; border: 0; border-radius: 50%;
+        background: rgba(255, 255, 255, 0.18); color: #fff;
+        font-size: 24px; cursor: pointer;
+        transition: background var(--transition-fast);
+    }
+    .close-modal-btn:hover { background: rgba(255, 255, 255, 0.30); }
+
+    .modal-body-custom { padding: 24px; }
+    .modal-body-custom label { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+
+    .form-input-custom {
+        width: 100%; padding: 10px 14px;
+        border: 2px solid var(--border-light);
+        border-radius: var(--radius-sm); background: #fafbfe;
+        font-size: 14px; color: var(--text-primary);
+        transition: all var(--transition-fast); outline: none;
+    }
+    .form-input-custom:focus {
+        border-color: var(--border-focus);
+        background: #fff;
+        box-shadow: 0 0 0 4px var(--cml-glow);
+    }
+    .form-check-custom {
+        display: flex; align-items: center; gap: 10px;
+        padding: 8px 12px; border-radius: var(--radius-sm);
+        transition: background var(--transition-fast); margin-top: 10px;
+    }
+    .form-check-custom:hover { background: #f6faff; }
+    .form-check-custom input { width: 18px; height: 18px; accent-color: var(--cml-blue); cursor: pointer; }
+    .form-check-custom label { margin: 0; font-size: 13px; font-weight: 500; color: var(--text-secondary); cursor: pointer; user-select: none; }
+
+    .modal-footer-custom {
+        display: flex; justify-content: flex-end; gap: 10px;
+        padding: 16px 24px; border-top: 1px solid var(--border-light);
+        background: #fafbfe;
+        border-radius: 0 0 var(--radius-md) var(--radius-md);
+        flex-wrap: wrap;
+    }
+    .btn-cancel {
+        padding: 10px 22px; background: #f1f4f9; color: var(--text-secondary);
+        border: 0; border-radius: var(--radius-sm);
+        font-size: 13px; font-weight: 700; cursor: pointer;
+        transition: all var(--transition-fast);
+        text-decoration: none;
+        display: inline-flex; align-items: center; justify-content: center;
+    }
+    .btn-cancel:hover { background: #e5e9f0; }
+
+    .btn-submit {
+        padding: 10px 22px; border: 0; border-radius: var(--radius-sm);
+        font-size: 13px; font-weight: 700; color: #fff;
+        cursor: pointer; text-decoration: none;
+        display: inline-flex; align-items: center; justify-content: center;
+        gap: 6px;
+        transition: all var(--transition-fast);
+    }
+    .btn-submit.add { background: linear-gradient(135deg, var(--cml-blue), var(--cml-dark-blue)); }
+    .btn-submit.add:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.10); }
+    .btn-submit.edit { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .btn-submit.edit:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.10); }
+    .btn-submit.delete { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .btn-submit.delete:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.10); }
+    .btn-submit.reset { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    .btn-submit.reset:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.10); }
+    .btn-submit svg {
+        display: block;
+        width: 15px;
+        height: 15px;
+        flex-shrink: 0;
+    }
+
+    /* ═══════ RECORDS MODAL ═══════ */
+    .records-modal {
+        display: flex; flex-direction: column;
+        width: 96%; max-width: 1280px;
+        background: #fff; border-radius: var(--radius-md); box-shadow: var(--shadow-xl);
+        animation: modalIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+    }
+    .records-modal-header {
+        display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between;
+        gap: 16px; padding: 20px 28px;
+        background: linear-gradient(135deg, var(--cml-dark-blue), var(--cml-blue));
+        color: #fff; border-radius: var(--radius-md) var(--radius-md) 0 0;
+        flex-shrink: 0;
+    }
+    .records-member-heading { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+    .records-avatar {
+        width: 48px; height: 48px; border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid rgba(255, 255, 255, 0.25);
+        background: #eef2f6; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px; font-weight: 700; color: #fff; text-transform: uppercase;
+    }
+    .records-eyebrow {
+        font-size: 11px; font-weight: 700; letter-spacing: 0.8px;
+        text-transform: uppercase; color: rgba(255, 255, 255, 0.65);
+    }
+    .records-member-heading h4 { margin: 0; font-size: 20px; font-weight: 800; }
+    .records-member-heading span { color: rgba(255, 255, 255, 0.75); font-size: 13px; }
+    .records-close {
+        display: flex; align-items: center; justify-content: center;
+        width: 36px; height: 36px; border: 0; border-radius: 50%;
+        background: rgba(255, 255, 255, 0.12); color: #fff;
+        font-size: 28px; cursor: pointer;
+        transition: background var(--transition-fast);
+        flex-shrink: 0;
+    }
+    .records-close:hover { background: rgba(255, 255, 255, 0.25); }
+    .records-modal-body { padding: 24px 28px; overflow-y: auto; flex: 1; }
+    .records-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 22px; }
+    .summary-item {
+        display: flex; align-items: center; gap: 12px;
+        padding: 14px 16px;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-sm); background: #fafbfe;
+    }
+    .summary-icon {
+        display: flex; align-items: center; justify-content: center;
+        width: 38px; height: 38px; border-radius: 10px;
+        font-size: 17px; font-weight: 800; flex-shrink: 0;
+    }
+    .summary-icon.blue { background: #e2edfc; color: #1a5a8a; }
+    .summary-icon.green { background: #e1f5ec; color: #0b7a4a; }
+    .summary-icon.purple { background: #ede7f8; color: #6d3b9b; }
+    .summary-item strong { display: block; font-size: 18px; color: var(--text-primary); line-height: 1.2; }
+    .summary-item small { display: block; font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+    .records-table-container {
+        overflow-x: auto;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-sm);
+        -webkit-overflow-scrolling: touch;
+    }
+    .records-table { width: 100%; min-width: 1100px; border-collapse: collapse; font-size: 12px; }
+    .records-table th {
+        padding: 12px 14px; background: #f8fafd; color: #5a6d82;
+        font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+        text-transform: uppercase; text-align: left;
+        border-bottom: 2px solid var(--border-light); white-space: nowrap;
+    }
+    .records-table td {
+        padding: 11px 14px; border-bottom: 1px solid #f0f3f8;
+        color: var(--text-secondary); vertical-align: middle;
+    }
+    .records-table tbody tr:hover td { background: #f6faff; }
+    .records-table tbody tr:last-child td { border-bottom: 0; }
+    .record-number { color: #94a8bb; font-weight: 700; }
+    .date-cell { color: var(--cml-dark-blue) !important; font-weight: 700; white-space: nowrap; }
+    .duration-badge, .small-count {
+        display: inline-flex; align-items: center; justify-content: center;
+        padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700;
+    }
+    .duration-badge { background: #e2edfc; color: #1a5a8a; }
+    .blue-count { background: #e2edfc; color: #1a5a8a; }
+    .green-count { background: #e1f5ec; color: #0b7a4a; }
+    .center-cell { text-align: center; }
+    .truncate-cell { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .records-empty { padding: 50px 20px; text-align: center; color: var(--text-muted); }
+    .records-empty-icon {
+        display: flex; align-items: center; justify-content: center;
+        width: 60px; height: 60px; margin: 0 auto 14px;
+        border-radius: 50%; background: #f1f4f9; color: #94a8bb; font-size: 26px;
+    }
+    .records-empty h5 { color: var(--text-primary); margin-bottom: 4px; }
+    .records-empty p { font-size: 13px; }
+    .records-modal-footer {
+        display: flex; justify-content: flex-end;
+        padding: 14px 28px; border-top: 1px solid var(--border-light);
+        background: #fafbfe;
+        border-radius: 0 0 var(--radius-md) var(--radius-md);
+        flex-shrink: 0;
+    }
+    .records-close-btn {
+        padding: 9px 22px; border: 1px solid var(--border-light);
+        border-radius: var(--radius-sm); background: #fff;
+        color: var(--text-secondary); font-size: 13px; font-weight: 600;
+        cursor: pointer; transition: all var(--transition-fast);
+    }
+    .records-close-btn:hover { background: #f1f4f9; }
+
+    .form-hint { display: block; margin-top: 4px; font-size: 12px; color: #9aa8b9; }
+    .form-error { display: none; margin-top: 4px; font-size: 12px; color: #dc2626; }
+    .required-star { color: #dc2626; }
+    .form-label-custom { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+
+    /* ═══════ QR MODAL ═══════ */
+    .qr-member-header {
+        display: flex; align-items: center; gap: 12px;
+        margin-bottom: 20px; padding: 12px 16px;
+        background: #f0f9ff; border-radius: 10px; border: 1px solid #bae6fd;
+    }
+    .qr-member-avatar {
+        width: 44px; height: 44px; border-radius: 50%;
+        background: linear-gradient(135deg, #0ea5e9, #0369a1);
+        display: grid; place-items: center;
+        color: #fff; font-size: 18px; font-weight: 700;
+    }
+    .qr-format-option {
+        flex: 1; padding: 10px 12px; border-radius: 8px;
+        cursor: pointer; font-size: 12px; font-weight: 600;
+        display: flex; align-items: center; gap: 6px;
+        transition: all var(--transition-fast);
+    }
+    .qr-format-option input { margin: 0; }
+    .qr-preview-wrap {
+        display: none; text-align: center;
+        padding: 20px; background: #fafbfe;
+        border-radius: 12px; border: 1px solid #e2e8f0;
+    }
+    .qr-preview-img-wrap {
+        display: inline-block; padding: 16px;
+        background: #fff; border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    .qr-preview-img-wrap img {
+        display: block; width: 220px; height: 220px;
+        image-rendering: pixelated;
+    }
+    .qr-payload-display {
+        margin-top: 14px;
+        font-size: 11px; font-family: 'JetBrains Mono', 'Courier New', monospace;
+        color: #64748b; word-break: break-all;
+        background: #fff; padding: 8px 12px;
+        border-radius: 6px; border: 1px solid #e2e8f0;
+    }
+    .qr-size-label { margin-top: 10px; font-size: 11px; color: #64748b; }
+    .qr-password-wrapper { position: relative; }
+    .qr-password-wrapper input { padding-right: 110px; }
+    .qr-generate-btn {
+        position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+        padding: 8px 16px;
+        background: linear-gradient(135deg, #0ea5e9, #0369a1);
+        color: #fff; border: 0; border-radius: 6px;
+        font-size: 12px; font-weight: 700; cursor: pointer;
+        transition: filter var(--transition-fast);
+    }
+    .qr-generate-btn:hover { filter: brightness(1.1); }
+
+    /* ═══════ QR LOADING / ERROR STATES ═══════ */
+    .qr-state {
+        text-align: center;
+        padding: 30px 20px;
+        color: #94a3b8;
+    }
+    .qr-state .qr-state-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 56px;
+        height: 56px;
+        margin-bottom: 12px;
+        border-radius: 50%;
+        background: #f1f5f9;
+    }
+    .qr-state .qr-state-icon svg {
+        width: 30px;
+        height: 30px;
+        display: block;
+        color: #94a3b8;
+    }
+    .qr-state .qr-state-title {
+        font-weight: 700;
+        font-size: 14px;
+        color: #0c4a6e;
+        margin-bottom: 6px;
+    }
+    .qr-state .qr-state-desc {
+        font-size: 12.5px;
+        line-height: 1.6;
+        color: #64748b;
+        margin: 0 auto;
+        max-width: 320px;
+    }
+    .qr-state.error .qr-state-icon { background: #fee2e2; }
+    .qr-state.error .qr-state-icon svg { color: #dc2626; }
+    .qr-state.error .qr-state-title { color: #991b1b; }
+    .qr-state.warn .qr-state-icon { background: #fef3c7; }
+    .qr-state.warn .qr-state-icon svg { color: #d97706; }
+    .qr-state.warn .qr-state-title { color: #92400e; }
+
+    /* Spinner (rotating ring) */
+    .qr-spinner {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 3px solid #dbeafe;
+        border-top-color: #0ea5e9;
+        animation: qrSpin 0.8s linear infinite;
+        display: inline-block;
+    }
+    @keyframes qrSpin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Regenerate button — loading state */
+    .qr-generate-btn.loading {
+        pointer-events: none;
+        opacity: 0.75;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .qr-generate-btn.loading::before {
+        content: "";
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.4);
+        border-top-color: #fff;
+        animation: qrSpin 0.7s linear infinite;
+    }
+
+    /* Retry button inside error state */
+    .qr-retry-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 14px;
+        padding: 9px 20px;
+        border: 0;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #0ea5e9, #0369a1);
+        color: #fff;
+        font-size: 12.5px;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(14, 165, 233, 0.3);
+        transition: filter 0.15s ease, transform 0.15s ease;
+    }
+    .qr-retry-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .qr-retry-btn svg {
+        width: 14px;
+        height: 14px;
+        display: block;
+    }
+
+    /* ═══════ CREDENTIALS MODAL ═══════ */
+    .cred-success-banner {
+        display: flex; align-items: center; gap: 12px;
+        padding: 14px 16px;
+        background: #f0fdf4; border: 1px solid #86efac;
+        border-radius: 10px; margin-bottom: 20px;
+    }
+    .cred-success-icon {
+        width: 44px; height: 44px; border-radius: 50%;
+        background: linear-gradient(135deg, #10b981, #059669);
+        display: grid; place-items: center;
+        color: #fff; font-size: 22px; flex-shrink: 0;
+    }
+    .cred-info-banner {
+        display: flex; align-items: flex-start; gap: 10px;
+        padding: 12px 14px;
+        background: #fef3c7; border: 1px solid #fde68a;
+        border-radius: 10px; margin-bottom: 20px;
+        font-size: 12.5px; color: #92400e; line-height: 1.5;
+    }
+    .cred-field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .cred-field-row input {
+        font-family: 'JetBrains Mono', 'Courier New', monospace;
+        font-size: 14px; cursor: text;
+    }
+
+    @media (max-width: 768px) {
+        .page-header { padding: 20px; }
+        .page-header-icon { width: 48px; height: 48px; font-size: 22px; }
+        .page-header h3 { font-size: 22px; }
+        .stat-card { padding: 14px; min-height: 90px; }
+        .stat-card .stat-value { font-size: 22px; }
+        .stat-card .stat-icon { width: 36px; height: 36px; font-size: 16px; }
+        .member-card-header, .member-toolbar { padding: 12px 14px; }
+        .records-summary { grid-template-columns: 1fr; }
+        .records-modal-header { padding: 16px 18px; }
+        .records-modal-body { padding: 16px 18px; }
+        .records-modal-footer { padding: 12px 18px; }
+        .records-member-heading h4 { font-size: 17px; }
+        .records-avatar { width: 40px; height: 40px; font-size: 17px; }
+        .records-table { min-width: 900px; font-size: 11px; }
+        .records-table th, .records-table td { padding: 8px 10px; }
+        .modal-footer-custom { flex-direction: column-reverse; }
+        .modal-footer-custom .btn-cancel,
+        .modal-footer-custom .btn-submit { width: 100%; }
+        .cred-field-row { flex-direction: column; align-items: stretch; }
+        .cred-field-row .btn-submit { width: 100%; }
+        .modal-overlay { padding: 70px 12px 12px; }
+    }
+</style>
+
+<!-- ============================================================
+     PAGE CONTENT
+     ============================================================ -->
+<div class="container-fluid px-2 px-md-4 mt-3 mb-5">
+
+    <div class="page-header">
+        <div class="page-header-main">
+            <div class="page-header-icon">🔧</div>
+            <div class="page-header-text">
+                <div class="page-header-title-row">
+                    <h3>Admin Panel</h3>
+                    <span class="page-header-badge">v2.3 Enterprise</span>
+                </div>
+                <p>Manage members, generate QR codes, and monitor system activity</p>
+            </div>
+        </div>
+        <div class="page-header-actions">
+            <a href="/admin/report" class="btn-report">📊 View Report</a>
+            <button type="button" class="btn-primary-custom" onclick="openAddModal()">＋ Add Member</button>
+        </div>
+    </div>
+
+    <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3">
+            <div class="stat-card blue">
+                <div class="stat-content">
+                    <div>
+                        <div class="stat-label">Members</div>
+                        <div class="stat-value">{{ members|length }}</div>
+                    </div>
+                    <div class="stat-icon">👥</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card green">
+                <div class="stat-content">
+                    <div>
+                        <div class="stat-label">Records</div>
+                        <div class="stat-value">{{ total_records }}</div>
+                    </div>
+                    <div class="stat-icon">📋</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card purple">
+                <div class="stat-content">
+                    <div>
+                        <div class="stat-label">Samples</div>
+                        <div class="stat-value">{{ total_samples_all }}</div>
+                    </div>
+                    <div class="stat-icon">🧪</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card amber">
+                <div class="stat-content">
+                    <div>
+                        <div class="stat-label">Specimens</div>
+                        <div class="stat-value">{{ total_sampling }}</div>
+                    </div>
+                    <div class="stat-icon">🔬</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="member-management-card">
+        <div class="member-card-header">
+            <div class="member-title-wrapper">
+                <div class="member-title-icon">👥</div>
+                <div>
+                    <h5>Member Management</h5>
+                    <p>Manage accounts, permissions, and QR codes</p>
+                </div>
+            </div>
+            <button type="button" class="btn-primary-custom d-none d-sm-inline-flex" style="background:linear-gradient(135deg, var(--cml-blue), var(--cml-dark-blue)); color:#fff; padding:10px 18px;" onclick="openAddModal()">＋ Add New Member</button>
+        </div>
+
+        <div class="member-toolbar">
+            <div class="member-search">
+                <span class="search-icon">⌕</span>
+                <input type="search" id="memberSearch" placeholder="Search members…" autocomplete="off" aria-label="Search members">
+            </div>
+            <div class="member-count">
+                Showing <strong id="visibleCount">{{ members|length }}</strong>
+            </div>
+        </div>
+
+        <div class="member-table-wrapper">
+            <table class="member-table" id="memberTable">
+                <thead>
+                    <tr>
+                        <th>Member</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th class="text-center">Records</th>
+                        <th class="text-center">Samples</th>
+                        <th class="text-center">Specimens</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in members %}
+                    {% set stats = member_stats.get(m.id, {'record_count': 0, 'total_sampling': 0, 'total_samples': 0}) %}
+                    <tr class="member-row">
+                        <td>
+                            <div class="member-info">
+                                {% if m.profile_picture and m.profile_picture != 'default.png' %}
+                                    {% if m.profile_picture.startswith('http') %}
+                                        <img src="{{ m.profile_picture }}" class="profile-img-sm" alt="{{ m.full_name }}" loading="lazy">
+                                    {% else %}
+                                        <img src="{{ url_for('uploaded_file', filename=m.profile_picture) }}" class="profile-img-sm" alt="{{ m.full_name }}" loading="lazy">
+                                    {% endif %}
+                                {% else %}
+                                    <div class="profile-img-sm" style="display:flex; align-items:center; justify-content:center; background:#5c8dce; color:#fff; font-weight:700;">
+                                        {{ m.full_name[:1] }}
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <div class="member-name">{{ m.full_name }}</div>
+                                    <div class="member-username">@{{ m.username }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if m.email %}
+                                <a href="mailto:{{ m.email }}" style="color: var(--cml-blue); text-decoration: none;">{{ m.email }}</a>
+                            {% else %}
+                                <span style="color: #c0cad6; font-style: italic;">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if m.phone %}
+                                <span style="font-family: monospace; color: var(--text-secondary);">{{ m.phone }}</span>
+                            {% else %}
+                                <span style="color: #c0cad6; font-style: italic;">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="role-badge {% if m.is_admin %}role-admin{% else %}role-member{% endif %}">
+                                {{ 'Admin' if m.is_admin else 'Member' }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-badge {% if m.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                {{ 'Active' if m.is_active else 'Inactive' }}
+                            </span>
+                        </td>
+                        <td class="text-center"><span class="records-badge">{{ stats.record_count }}</span></td>
+                        <td class="text-center"><span class="samples-badge">{{ stats.total_samples }}</span></td>
+                        <td class="text-center"><span class="sampling-badge">{{ stats.total_sampling }}</span></td>
+                        <td>
+                            <div class="member-actions">
+                                <button type="button" class="member-action view" onclick="openViewModal('{{ m.id }}')" title="View Records">👁</button>
+
+                                <!-- QR BUTTON with SVG icon -->
+                                <button type="button" class="member-action qr"
+                                        data-id="{{ m.id }}"
+                                        data-name="{{ m.full_name }}"
+                                        data-username="{{ m.username }}"
+                                        data-password="{{ m.plain_password if m.plain_password else '' }}"
+                                        title="Generate QR Code"
+                                        aria-label="Generate QR code for {{ m.full_name }}">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                         aria-hidden="true">
+                                        <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                                        <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                                        <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                                        <circle cx="6.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"></circle>
+                                        <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"></circle>
+                                        <circle cx="6.5" cy="17.5" r="1.2" fill="currentColor" stroke="none"></circle>
+                                        <path d="M14 14h2v2h-2z" fill="currentColor" stroke="none"></path>
+                                        <path d="M18 14h2v2h-2z" fill="currentColor" stroke="none"></path>
+                                        <path d="M14 18h2v2h-2z" fill="currentColor" stroke="none"></path>
+                                        <path d="M18 18h2v2h-2z" fill="currentColor" stroke="none"></path>
+                                    </svg>
+                                </button>
+
+                                <button type="button" class="member-action edit" onclick="openEditModal('{{ m.id }}')" title="Edit">✎</button>
+                                <a href="/admin/toggle_member/{{ m.id }}" class="member-action toggle" title="Toggle Status">✓</a>
+                                <a href="#" class="member-action reset reset-btn" data-id="{{ m.id }}" data-name="{{ m.full_name }}" title="Reset Password">🔒</a>
+                                {% if m.id != session.user_id %}
+                                <a href="#" class="member-action delete delete-btn" data-id="{{ m.id }}" data-name="{{ m.full_name }}" title="Delete">🗑</a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div id="emptySearchState" class="empty-members" style="display:none;">
+                <h6>No members found</h6>
+                <p>Try adjusting your search query.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     MODALS
+     ============================================================ -->
+
+<!-- Add Member Modal -->
+<div class="modal-overlay" id="addModal">
+    <div class="modal-box">
+        <div class="modal-header-custom add">
+            <span>＋ Add New Member</span>
+            <button type="button" class="close-modal-btn" onclick="closeAddModal()">×</button>
+        </div>
+        <form action="/admin/add_member" method="POST">
+            <div class="modal-body-custom">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label-custom">Username <span class="required-star">*</span></label>
+                        <input type="text" name="username" class="form-input-custom" placeholder="Enter username" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label-custom">Password <span class="required-star">*</span></label>
+                        <input type="password" name="password" class="form-input-custom" placeholder="Min 6 characters" minlength="6" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label-custom">Full Name <span class="required-star">*</span></label>
+                        <input type="text" name="full_name" class="form-input-custom" placeholder="Enter full name" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label-custom">Email</label>
+                        <input type="email" name="email" class="form-input-custom" placeholder="email@example.com">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label-custom">Phone</label>
+                    <input type="text" name="phone" class="form-input-custom" placeholder="Phone number">
+                </div>
+                <div class="form-check-custom">
+                    <input type="checkbox" name="is_admin" id="addAdmin">
+                    <label for="addAdmin">Grant Admin Access</label>
+                </div>
+            </div>
+            <div class="modal-footer-custom">
+                <button type="button" class="btn-cancel" onclick="closeAddModal()">Cancel</button>
+                <button type="submit" class="btn-submit add">Add Member</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Modals -->
+{% for m in members %}
+<div class="modal-overlay" id="editModal{{ m.id }}">
+    <div class="modal-box">
+        <div class="modal-header-custom edit">
+            <span>✎ Edit {{ m.full_name }}</span>
+            <button type="button" class="close-modal-btn" onclick="closeEditModal('{{ m.id }}')">×</button>
+        </div>
+        <form action="/admin/edit_member/{{ m.id }}" method="POST">
+            <div class="modal-body-custom">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label-custom">Username</label>
+                        <input type="text" name="username" class="form-input-custom" value="{{ m.username }}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label-custom">Full Name</label>
+                        <input type="text" name="full_name" class="form-input-custom" value="{{ m.full_name }}" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label-custom">Email</label>
+                        <input type="email" name="email" class="form-input-custom" value="{{ m.email or '' }}" placeholder="email@example.com">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label-custom">Phone</label>
+                        <input type="text" name="phone" class="form-input-custom" value="{{ m.phone or '' }}" placeholder="Phone number">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label-custom">New Password <small style="color:#9aa8b9;">(leave blank to keep current)</small></label>
+                    <input type="password" name="new_password" class="form-input-custom" placeholder="Min 6 characters" minlength="6">
+                </div>
+                <div class="form-check-custom">
+                    <input type="checkbox" name="is_admin" id="editAdmin{{ m.id }}" {% if m.is_admin %}checked{% endif %}>
+                    <label for="editAdmin{{ m.id }}">Admin Access</label>
+                </div>
+                <div class="form-check-custom">
+                    <input type="checkbox" name="is_active" id="editActive{{ m.id }}" {% if m.is_active %}checked{% endif %}>
+                    <label for="editActive{{ m.id }}">Active Account</label>
+                </div>
+            </div>
+            <div class="modal-footer-custom">
+                <button type="button" class="btn-cancel" onclick="closeEditModal('{{ m.id }}')">Cancel</button>
+                <button type="submit" class="btn-submit edit">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+<!-- View Records Modals -->
+{% for m in members %}
+{% set stats = member_stats.get(m.id, {'record_count': 0, 'total_sampling': 0, 'total_samples': 0}) %}
+<div class="modal-overlay" id="viewModal{{ m.id }}" role="dialog" aria-modal="true" aria-labelledby="viewModalTitle{{ m.id }}">
+    <div class="records-modal">
+        <div class="records-modal-header">
+            <div class="records-member-heading">
+                {% if m.profile_picture and m.profile_picture != 'default.png' %}
+                    {% if m.profile_picture.startswith('http') %}
+                        <img src="{{ m.profile_picture }}" alt="{{ m.full_name }}" class="records-avatar" loading="lazy">
+                    {% else %}
+                        <img src="{{ url_for('uploaded_file', filename=m.profile_picture) }}" alt="{{ m.full_name }}" class="records-avatar" loading="lazy">
+                    {% endif %}
+                {% else %}
+                    <div class="records-avatar">{{ m.full_name[:1] }}</div>
+                {% endif %}
+                <div>
+                    <div class="records-eyebrow">Member Records</div>
+                    <h4 id="viewModalTitle{{ m.id }}">{{ m.full_name }}</h4>
+                    <span>@{{ m.username }}</span>
+                </div>
+            </div>
+            <button type="button" class="records-close" onclick="closeViewModal('{{ m.id }}')" aria-label="Close records modal">×</button>
+        </div>
+        <div class="records-modal-body">
+            <div class="records-summary">
+                <div class="summary-item">
+                    <div class="summary-icon blue">▣</div>
+                    <div><strong>{{ stats.record_count }}</strong><small>Total Records</small></div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-icon purple">🧪</div>
+                    <div><strong>{{ stats.total_samples }}</strong><small>Total Samples</small></div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-icon green">✓</div>
+                    <div><strong>{{ stats.total_sampling }}</strong><small>Total Specimens</small></div>
+                </div>
+            </div>
+
+            {% if m.records %}
+            <div class="records-table-container">
+                <table class="records-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Call</th>
+                            <th>Arrived</th>
+                            <th>Duration</th>
+                            <th>Clinic</th>
+                            <th>Doctor</th>
+                            <th>Samples</th>
+                            <th>Specimens</th>
+                            <th>Types</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in m.records|sort(attribute='date', reverse=true) %}
+                            {% if r.patient_count > 0 or r.total_sampling > 0 %}
+                            <tr>
+                                <td class="record-number">{{ loop.index }}</td>
+                                <td class="date-cell">{{ r.date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ r.call_time or '-' }}</td>
+                                <td>{{ r.arrived_time or '-' }}</td>
+                                <td>{% if r.duration %}<span class="duration-badge">{{ r.duration }}</span>{% else %}-{% endif %}</td>
+                                <td class="truncate-cell" title="{{ r.location or '-' }}">{{ r.location or '-' }}</td>
+                                <td>{{ r.doctor or '-' }}</td>
+                                <td class="center-cell"><span class="small-count blue-count">{{ r.patient_count if r.patient_count is not none else 1 }}</span></td>
+                                <td class="center-cell"><span class="small-count green-count">{{ r.total_sampling }}</span></td>
+                                <td class="truncate-cell" title="{{ r.sample_types_json|sample_types_display or '-' }}">{{ r.sample_types_json|sample_types_display or '-' }}</td>
+                                <td class="truncate-cell" title="{{ r.notes or '-' }}">{% if r.notes %}{{ r.notes[:70] }}{% if r.notes|length > 70 %}…{% endif %}{% else %}-{% endif %}</td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="records-empty">
+                <div class="records-empty-icon">▣</div>
+                <h5>No records available</h5>
+                <p>This member has not submitted any records yet.</p>
+            </div>
+            {% endif %}
+        </div>
+        <div class="records-modal-footer">
+            <button type="button" class="records-close-btn" onclick="closeViewModal('{{ m.id }}')">Close</button>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Delete Modal -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-box" style="max-width:460px;">
+        <div class="modal-header-custom delete">
+            <span>🗑 Confirm Deletion</span>
+            <button type="button" class="close-modal-btn" onclick="closeDeleteModal()">×</button>
+        </div>
+        <div class="modal-body-custom">
+            <p class="mb-0">Are you sure you want to delete <strong id="deleteMemberName"></strong>? This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer-custom">
+            <button type="button" class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+            <a href="#" id="confirmDeleteBtn" class="btn-submit delete">Delete</a>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal-overlay" id="resetPasswordModal">
+    <div class="modal-box" style="max-width:480px;">
+        <div class="modal-header-custom reset">
+            <span>🔒 Reset Password</span>
+            <button type="button" class="close-modal-btn" onclick="closeResetModal()">×</button>
+        </div>
+        <form id="resetPasswordForm" method="POST">
+            <div class="modal-body-custom">
+                <p class="mb-3">Set a new password for <strong id="resetMemberName"></strong></p>
+                <div class="mb-3">
+                    <label class="form-label-custom">New Password</label>
+                    <input type="password" name="new_password" id="newResetPassword" class="form-input-custom" placeholder="Enter new password" minlength="6" required>
+                    <span class="form-hint">Minimum 6 characters</span>
+                </div>
+                <div>
+                    <label class="form-label-custom">Confirm Password</label>
+                    <input type="password" id="confirmResetPassword" class="form-input-custom" placeholder="Confirm new password" minlength="6" required>
+                    <div id="passwordMismatch" class="form-error">Passwords do not match.</div>
+                </div>
+            </div>
+            <div class="modal-footer-custom">
+                <button type="button" class="btn-cancel" onclick="closeResetModal()">Cancel</button>
+                <button type="submit" class="btn-submit reset">Update Password</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     QR CODE GENERATOR MODAL
+     ══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="qrModal">
+    <div class="modal-box" style="max-width: 620px;">
+        <div class="modal-header-custom qr">
+            <span class="modal-header-icon-group">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                    <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                    <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                    <circle cx="6.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"></circle>
+                    <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"></circle>
+                    <circle cx="6.5" cy="17.5" r="1.2" fill="currentColor" stroke="none"></circle>
+                    <path d="M14 14h2v2h-2z" fill="currentColor" stroke="none"></path>
+                    <path d="M18 14h2v2h-2z" fill="currentColor" stroke="none"></path>
+                    <path d="M14 18h2v2h-2z" fill="currentColor" stroke="none"></path>
+                    <path d="M18 18h2v2h-2z" fill="currentColor" stroke="none"></path>
+                </svg>
+                Generate QR Code
+            </span>
+            <button type="button" class="close-modal-btn" onclick="closeQrModal()">×</button>
+        </div>
+
+        <div class="modal-body-custom">
+            <div class="qr-member-header">
+                <div class="qr-member-avatar" id="qrMemberInitial">?</div>
+                <div>
+                    <div style="font-weight: 700; color: #0c4a6e; font-size: 15px;" id="qrMemberName">Member Name</div>
+                    <div style="font-size: 12px; color: #64748b;">@<span id="qrMemberUsername">username</span></div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 18px;">
+                <label class="form-label-custom">
+                    Password
+                    <span style="color: #dc2626;">*</span>
+                </label>
+                <div class="qr-password-wrapper">
+                    <input
+                        type="text"
+                        id="qrPasswordInput"
+                        class="form-input-custom"
+                        placeholder="Auto-filled from member record"
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                    <button
+                        type="button"
+                        id="qrGenerateBtn"
+                        class="qr-generate-btn"
+                        onclick="generateQrCode()"
+                    >
+                        Regenerate
+                    </button>
+                </div>
+                <span class="form-hint" id="qrPasswordHint">
+                    ✅ Password is auto-filled from the member's record.
+                </span>
+            </div>
+
+            <div style="margin-bottom: 18px;">
+                <label class="form-label-custom">QR format</label>
+                <div style="display: flex; gap: 8px;">
+                    <label class="qr-format-option" data-format="json" style="border: 2px solid #0ea5e9; background: #f0f9ff; color: #0369a1;">
+                        <input type="radio" name="qr_format" value="json" checked onchange="regenerateIfPossible()">
+                        JSON
+                    </label>
+                    <label class="qr-format-option" data-format="plain" style="border: 2px solid #e2e8f0; background: #fafbfe; color: #64748b;">
+                        <input type="radio" name="qr_format" value="plain" onchange="regenerateIfPossible()">
+                        Plain
+                    </label>
+                    <label class="qr-format-option" data-format="url" style="border: 2px solid #e2e8f0; background: #fafbfe; color: #64748b;">
+                        <input type="radio" name="qr_format" value="url" onchange="regenerateIfPossible()">
+                        URL
+                    </label>
+                </div>
+            </div>
+
+            <div id="qrPreviewWrap" class="qr-preview-wrap">
+                <div class="qr-preview-img-wrap">
+                    <img id="qrPreviewImg" src="" alt="QR Code">
+                </div>
+                <div id="qrPayloadDisplay" class="qr-payload-display">
+                    {"u":"username","p":"password"}
+                </div>
+                <div id="qrSizeLabel" class="qr-size-label">
+                    220 × 220 px
+                </div>
+            </div>
+
+            <!-- State placeholder (loading / error / password prompt) — JS swaps innerHTML -->
+            <div id="qrState" class="qr-state">
+                <div class="qr-state-icon" style="background:#eff6ff;">
+                    <span class="qr-spinner"></span>
+                </div>
+                <div class="qr-state-title">Loading QR code…</div>
+                <p class="qr-state-desc">Please wait a moment.</p>
+            </div>
+        </div>
+
+        <div class="modal-footer-custom">
+            <button type="button" class="btn-cancel" onclick="closeQrModal()">Close</button>
+            <button
+                type="button"
+                id="qrCopyBtn"
+                class="btn-submit"
+                style="background: #64748b; display: none;"
+                onclick="copyQrPayload()"
+            >
+                📋 Copy Payload
+            </button>
+            <a
+                href="#"
+                id="qrPrintBtn"
+                target="_blank"
+                class="btn-submit"
+                style="background: #6366f1; display: none; text-decoration: none;"
+            >
+                🖨️ Print
+            </a>
+            <a
+                href="#"
+                id="qrDownloadBtn"
+                class="btn-submit"
+                style="background: linear-gradient(135deg, #0ea5e9, #0369a1); display: none; text-decoration: none;"
+            >
+                ⬇️ Download PNG
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     NEW MEMBER CREDENTIALS MODAL (auto-opens after add)
+     ══════════════════════════════════════════════════════════════ -->
+{% if new_member_credentials %}
+<div class="modal-overlay active" id="credentialsModal">
+    <div class="modal-box" style="max-width: 520px;">
+        <div class="modal-header-custom success">
+            <span>✅ Member Created Successfully</span>
+            <button type="button" class="close-modal-btn" onclick="closeCredentialsModal()">×</button>
+        </div>
+
+        <div class="modal-body-custom">
+            <div class="cred-success-banner">
+                <div class="cred-success-icon">✓</div>
+                <div>
+                    <div style="font-weight: 700; color: #065f46; font-size: 15px;">
+                        {{ new_member_credentials.full_name }}
+                    </div>
+                    <div style="font-size: 12px; color: #047857;">
+                        {{ 'Administrator' if new_member_credentials.is_admin else 'Member' }} account created
+                    </div>
+                </div>
+            </div>
+
+            <div class="cred-info-banner">
+                <span style="font-size: 16px; flex-shrink: 0;">⚠️</span>
+                <span>
+                    <strong>Save these credentials now.</strong>
+                    The password is only shown once — you cannot retrieve it later.
+                </span>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label class="form-label-custom">Username</label>
+                <div class="cred-field-row">
+                    <input
+                        type="text"
+                        id="credUsername"
+                        value="{{ new_member_credentials.username }}"
+                        readonly
+                        class="form-input-custom"
+                        style="background: #f0f9ff;"
+                    >
+                    <button
+                        type="button"
+                        class="btn-submit"
+                        style="background: #0ea5e9; flex-shrink: 0;"
+                        onclick="copyCredential('credUsername', this)"
+                    >
+                        📋 Copy
+                    </button>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label class="form-label-custom">Password</label>
+                <div class="cred-field-row">
+                    <input
+                        type="text"
+                        id="credPassword"
+                        value="{{ new_member_credentials.password }}"
+                        readonly
+                        class="form-input-custom"
+                        style="background: #fef3c7;"
+                    >
+                    <button
+                        type="button"
+                        class="btn-submit"
+                        style="background: #f59e0b; flex-shrink: 0;"
+                        onclick="copyCredential('credPassword', this)"
+                    >
+                        📋 Copy
+                    </button>
+                </div>
+            </div>
+
+            <button
+                type="button"
+                class="btn-submit"
+                style="width: 100%; background: linear-gradient(135deg, #6366f1, #8b5cf6); margin-bottom: 12px;"
+                onclick="copyAllCredentials()"
+            >
+                📋 Copy All Credentials
+            </button>
+        </div>
+
+        <div class="modal-footer-custom">
+            <button type="button" class="btn-cancel" onclick="closeCredentialsModal()">
+                Close
+            </button>
+            <button
+                type="button"
+                class="btn-submit"
+                style="background: linear-gradient(135deg, #0ea5e9, #0369a1);"
+                onclick="generateQrForNewMember()"
+            >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                    <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                    <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                    <circle cx="6.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"></circle>
+                    <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"></circle>
+                    <circle cx="6.5" cy="17.5" r="1.2" fill="currentColor" stroke="none"></circle>
+                    <path d="M14 14h2v2h-2z" fill="currentColor" stroke="none"></path>
+                    <path d="M18 14h2v2h-2z" fill="currentColor" stroke="none"></path>
+                    <path d="M14 18h2v2h-2z" fill="currentColor" stroke="none"></path>
+                    <path d="M18 18h2v2h-2z" fill="currentColor" stroke="none"></path>
+                </svg>
+                Generate QR Now
+            </button>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+    /* ═══════════════════════════════════════════════════════════════
+       MODAL OPEN/CLOSE
+       ═══════════════════════════════════════════════════════════════ */
+    function openAddModal() { document.getElementById("addModal").classList.add("active"); document.body.classList.add("modal-open-custom"); }
+    function closeAddModal() { document.getElementById("addModal").classList.remove("active"); document.body.classList.remove("modal-open-custom"); }
+
+    function openEditModal(id) { document.getElementById("editModal" + id).classList.add("active"); document.body.classList.add("modal-open-custom"); }
+    function closeEditModal(id) { document.getElementById("editModal" + id).classList.remove("active"); document.body.classList.remove("modal-open-custom"); }
+
+    function openViewModal(id) { document.getElementById("viewModal" + id).classList.add("active"); document.body.classList.add("modal-open-custom"); }
+    function closeViewModal(id) { document.getElementById("viewModal" + id).classList.remove("active"); document.body.classList.remove("modal-open-custom"); }
+
+    function openDeleteModal(id, name) {
+        document.getElementById("deleteMemberName").textContent = name;
+        document.getElementById("confirmDeleteBtn").href = "/admin/delete_member/" + id;
+        document.getElementById("deleteModal").classList.add("active");
+        document.body.classList.add("modal-open-custom");
+    }
+    function closeDeleteModal() { document.getElementById("deleteModal").classList.remove("active"); document.body.classList.remove("modal-open-custom"); }
+
+    function openResetModal(id, name) {
+        document.getElementById("resetMemberName").textContent = name;
+        document.getElementById("resetPasswordForm").action = "/admin/reset_password/" + id;
+        document.getElementById("resetPasswordModal").classList.add("active");
+        document.body.classList.add("modal-open-custom");
+    }
+    function closeResetModal() { document.getElementById("resetPasswordModal").classList.remove("active"); document.body.classList.remove("modal-open-custom"); }
+
+    /* ═══════════════════════════════════════════════════════════════
+       OVERLAY CLICK & ESCAPE
+       ═══════════════════════════════════════════════════════════════ */
+    document.addEventListener("click", function(e) {
+        if (e.target.classList.contains("modal-overlay")) {
+            e.target.classList.remove("active");
+            document.body.classList.remove("modal-open-custom");
+        }
+    });
+
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") {
+            document.querySelectorAll(".modal-overlay.active").forEach(function(m) {
+                m.classList.remove("active");
+            });
+            document.body.classList.remove("modal-open-custom");
+        }
+    });
+
+    /* ═══════════════════════════════════════════════════════════════
+       SEARCH
+       ═══════════════════════════════════════════════════════════════ */
+    document.addEventListener("DOMContentLoaded", function() {
+        const searchInput = document.getElementById("memberSearch");
+        const rows = document.querySelectorAll(".member-row");
+        const emptyState = document.getElementById("emptySearchState");
+        const visibleCount = document.getElementById("visibleCount");
+
+        if (searchInput) {
+            searchInput.addEventListener("input", function() {
+                const term = this.value.trim().toLowerCase();
+                let visible = 0;
+                rows.forEach(row => {
+                    const match = row.textContent.toLowerCase().includes(term);
+                    row.style.display = match ? "" : "none";
+                    if (match) visible++;
+                });
+                if (emptyState) emptyState.style.display = visible === 0 ? "block" : "none";
+                if (visibleCount) visibleCount.textContent = visible;
+            });
+        }
+    });
+
+    /* ═══════════════════════════════════════════════════════════════
+       DELETE & RESET BUTTONS
+       ═══════════════════════════════════════════════════════════════ */
+    document.addEventListener("click", function(e) {
+        const deleteBtn = e.target.closest(".delete-btn");
+        if (deleteBtn) {
+            e.preventDefault();
+            openDeleteModal(deleteBtn.getAttribute("data-id"), deleteBtn.getAttribute("data-name"));
+            return;
+        }
+        const resetBtn = e.target.closest(".reset-btn");
+        if (resetBtn) {
+            e.preventDefault();
+            openResetModal(resetBtn.getAttribute("data-id"), resetBtn.getAttribute("data-name"));
+        }
+    });
+
+    /* ═══════════════════════════════════════════════════════════════
+       RESET PASSWORD FORM
+       ═══════════════════════════════════════════════════════════════ */
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById("resetPasswordForm");
+        const newPw = document.getElementById("newResetPassword");
+        const confirmPw = document.getElementById("confirmResetPassword");
+        const mismatch = document.getElementById("passwordMismatch");
+
+        if (form) {
+            form.addEventListener("submit", function(e) {
+                if (newPw.value !== confirmPw.value) {
+                    e.preventDefault();
+                    if (mismatch) mismatch.style.display = "block";
+                }
+            });
+        }
+
+        if (confirmPw) {
+            confirmPw.addEventListener("input", function() {
+                if (newPw.value === confirmPw.value && mismatch) {
+                    mismatch.style.display = "none";
+                }
+            });
+        }
+    });
+
+    /* ═══════════════════════════════════════════════════════════════
+       QR CODE GENERATOR — with loading / error / retry states
+       ═══════════════════════════════════════════════════════════════ */
+
+    let currentQrMemberId = null;
+    let currentQrPayload = '';
+    let currentQrImageUrl = '';
+    let currentQrRequestToken = 0;      // guards against stale image loads
+    let currentQrLoadTimeout = null;    // prevents "Loading…" from hanging
+
+    // SVG snippets for state icons
+    const SVG_QR_LOADING_ICON = `
+        <div class="qr-state-icon" style="background:#eff6ff;">
+            <span class="qr-spinner"></span>
+        </div>`;
+
+    const SVG_QR_ERROR_ICON = `
+        <div class="qr-state-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+        </div>`;
+
+    const SVG_QR_KEY_ICON = `
+        <div class="qr-state-icon" style="background:#fef3c7;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#d97706"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+            </svg>
+        </div>`;
+
+    /* ─────────────
+       State renderers
+       ───────────── */
+
+    function qrShowLoading(message) {
+        const el = document.getElementById('qrState');
+        if (!el) return;
+        el.className = 'qr-state';
+        el.style.display = 'block';
+        el.innerHTML = `
+            ${SVG_QR_LOADING_ICON}
+            <div class="qr-state-title">${message || 'Loading QR code…'}</div>
+            <p class="qr-state-desc">Please wait a moment.</p>
+        `;
+        document.getElementById('qrPreviewWrap').style.display = 'none';
+    }
+
+    function qrShowError(title, message) {
+        const el = document.getElementById('qrState');
+        if (!el) return;
+        el.className = 'qr-state error';
+        el.style.display = 'block';
+        el.innerHTML = `
+            ${SVG_QR_ERROR_ICON}
+            <div class="qr-state-title">${title || 'Could not load QR'}</div>
+            <p class="qr-state-desc">${message || 'The QR code failed to load. Please try again.'}</p>
+            <button type="button" class="qr-retry-btn" onclick="retryQr()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+                Try Again
+            </button>
+        `;
+        document.getElementById('qrPreviewWrap').style.display = 'none';
+    }
+
+    function qrShowPasswordPrompt() {
+        const el = document.getElementById('qrState');
+        if (!el) return;
+        el.className = 'qr-state warn';
+        el.style.display = 'block';
+        el.innerHTML = `
+            ${SVG_QR_KEY_ICON}
+            <div class="qr-state-title">Password Not Stored</div>
+            <p class="qr-state-desc">
+                Type the member's password above to generate the QR code, or use
+                <strong>Reset Password</strong> first.
+            </p>
+        `;
+        document.getElementById('qrPreviewWrap').style.display = 'none';
+    }
+
+    function qrShowReady() {
+        const stateEl = document.getElementById('qrState');
+        if (stateEl) stateEl.style.display = 'none';
+        document.getElementById('qrPreviewWrap').style.display = 'block';
+    }
+
+    /* ─────────────
+       Modal open / close
+       ───────────── */
+
+    function openQrModal(id, name, username, storedPassword) {
+        currentQrMemberId = id;
+        currentQrPayload = '';
+        currentQrImageUrl = '';
+
+        document.getElementById('qrMemberName').textContent = name;
+        document.getElementById('qrMemberUsername').textContent = username;
+        document.getElementById('qrMemberInitial').textContent = (name || '?').charAt(0).toUpperCase();
+
+        const pwField = document.getElementById('qrPasswordInput');
+        const pwHint  = document.getElementById('qrPasswordHint');
+
+        // Sanitize: reject hashes, "None", "undefined", "null", or unusually long strings
+        let safePassword = '';
+        if (storedPassword && typeof storedPassword === 'string') {
+            const trimmed = storedPassword.trim();
+            const looksLikeHash = trimmed.startsWith('pbkdf2:') ||
+                                  trimmed.startsWith('scrypt:') ||
+                                  trimmed.startsWith('$pbkdf2') ||
+                                  trimmed.startsWith('$argon') ||
+                                  trimmed.length > 60;
+            const isJunk = ['none', 'null', 'undefined', ''].includes(trimmed.toLowerCase());
+            if (!looksLikeHash && !isJunk) safePassword = trimmed;
+        }
+
+        pwField.value = safePassword;
+
+        // Reset action buttons
+        document.getElementById('qrCopyBtn').style.display = 'none';
+        document.getElementById('qrPrintBtn').style.display = 'none';
+        document.getElementById('qrDownloadBtn').style.display = 'none';
+
+        // Reset format
+        document.querySelector('input[name="qr_format"][value="json"]').checked = true;
+        updateFormatStyles();
+
+        document.getElementById('qrModal').classList.add('active');
+        document.body.classList.add('modal-open-custom');
+
+        if (safePassword) {
+            pwHint.innerHTML = '✅ Password is auto-filled from the member\'s record.';
+            pwHint.style.color = '#64748b';
+            generateQrCode();        // fires loading state internally
+        } else {
+            pwHint.innerHTML = '⚠️ No stored password found. Please type the member\'s password.';
+            pwHint.style.color = '#d97706';
+            qrShowPasswordPrompt();
+            setTimeout(() => pwField.focus(), 200);
+        }
+    }
+
+    function closeQrModal() {
+        clearTimeout(currentQrLoadTimeout);
+        currentQrRequestToken++;   // invalidate any in-flight image load
+
+        document.getElementById('qrModal').classList.remove('active');
+        document.body.classList.remove('modal-open-custom');
+
+        currentQrMemberId = null;
+        currentQrPayload = '';
+        currentQrImageUrl = '';
+    }
+
+    /* ─────────────
+       Main generator — always enters loading state first
+       ───────────── */
+
+    function generateQrCode() {
+        if (!currentQrMemberId) return;
+
+        const password = document.getElementById('qrPasswordInput').value.trim();
+        if (!password) {
+            qrShowPasswordPrompt();
+            document.getElementById('qrPasswordInput').focus();
+            return;
+        }
+
+        const format = document.querySelector('input[name="qr_format"]:checked').value;
+        const username = document.getElementById('qrMemberUsername').textContent;
+
+        // Build URLs (cache-busted so the browser never serves a stale image)
+        const token = Date.now();
+        const imageUrl = `/admin/member/${currentQrMemberId}/qr_image`
+            + `?password=${encodeURIComponent(password)}`
+            + `&format=${format}`
+            + `&t=${token}`;
+        const downloadUrl = `/admin/member/${currentQrMemberId}/qr_download`
+            + `?password=${encodeURIComponent(password)}&format=${format}`;
+        const printUrl = `/admin/member/${currentQrMemberId}/qr_print`
+            + `?password=${encodeURIComponent(password)}&format=${format}`;
+
+        // Payload preview
+        let payloadDisplay;
+        if (format === 'plain') payloadDisplay = `${username}:${password}`;
+        else if (format === 'url') payloadDisplay = `cammedlab://login?u=${username}&p=${password}`;
+        else payloadDisplay = `{"u":"${username}","p":"${password}"}`;
+
+        currentQrPayload = payloadDisplay;
+        currentQrImageUrl = imageUrl;
+
+        // Enter LOADING state
+        qrShowLoading('Generating QR code…');
+        setRegenerateLoading(true);
+
+        // Invalidate any previous in-flight load
+        const myToken = ++currentQrRequestToken;
+        clearTimeout(currentQrLoadTimeout);
+
+        // Timeout guard: if the image doesn't load within 10 s, show error
+        currentQrLoadTimeout = setTimeout(() => {
+            if (myToken !== currentQrRequestToken) return;   // superseded
+            setRegenerateLoading(false);
+            qrShowError(
+                'QR request timed out',
+                'The server took too long to respond. Check your connection and try again.'
+            );
+        }, 10000);
+
+        const img = new Image();
+
+        img.onload = function () {
+            clearTimeout(currentQrLoadTimeout);
+            if (myToken !== currentQrRequestToken) return;   // superseded
+
+            setRegenerateLoading(false);
+
+            const realImg = document.getElementById('qrPreviewImg');
+            realImg.onload = null;
+            realImg.onerror = null;
+            realImg.src = imageUrl;
+
+            requestAnimationFrame(() => {
+                document.getElementById('qrPayloadDisplay').textContent = payloadDisplay;
+                document.getElementById('qrSizeLabel').textContent =
+                    `${realImg.naturalWidth || 220} × ${realImg.naturalHeight || 220} px `
+                    + `· Format: ${format.toUpperCase()} · EC: High (30%)`;
+
+                qrShowReady();
+                document.getElementById('qrCopyBtn').style.display = 'inline-flex';
+                document.getElementById('qrPrintBtn').style.display = 'inline-flex';
+                document.getElementById('qrDownloadBtn').style.display = 'inline-flex';
+                document.getElementById('qrDownloadBtn').href = downloadUrl;
+                document.getElementById('qrPrintBtn').href = printUrl;
+            });
+        };
+
+        img.onerror = function () {
+            clearTimeout(currentQrLoadTimeout);
+            if (myToken !== currentQrRequestToken) return;   // superseded
+
+            setRegenerateLoading(false);
+            qrShowError(
+                'Could not generate QR',
+                'The server could not return the QR image. Check your connection and try again.'
+            );
+        };
+
+        img.src = imageUrl;
+    }
+
+    /* ─────────────
+       Retry / regenerate helpers
+       ───────────── */
+
+    function retryQr() {
+        generateQrCode();
+    }
+
+    function regenerateIfPossible() {
+        updateFormatStyles();
+        const password = document.getElementById('qrPasswordInput').value.trim();
+        if (password) generateQrCode();
+    }
+
+    function setRegenerateLoading(isLoading) {
+        const btn = document.getElementById('qrGenerateBtn');
+        if (!btn) return;
+        if (isLoading) {
+            btn.classList.add('loading');
+            btn.disabled = true;
+        } else {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+        }
+    }
+
+    /* ─────────────
+       Copy payload
+       ───────────── */
+
+    function copyQrPayload() {
+        if (!currentQrPayload) return;
+        navigator.clipboard.writeText(currentQrPayload).then(() => {
+            const btn = document.getElementById('qrCopyBtn');
+            const original = btn.textContent;
+            btn.textContent = '✅ Copied!';
+            setTimeout(() => { btn.textContent = original; }, 1500);
+        }).catch(err => {
+            alert('Could not copy: ' + err.message);
+        });
+    }
+
+    /* ─────────────
+       Format switcher
+       ───────────── */
+
+    function updateFormatStyles() {
+        document.querySelectorAll('.qr-format-option').forEach(label => {
+            const radio = label.querySelector('input[type="radio"]');
+            if (radio && radio.checked) {
+                label.style.border = '2px solid #0ea5e9';
+                label.style.background = '#f0f9ff';
+                label.style.color = '#0369a1';
+            } else {
+                label.style.border = '2px solid #e2e8f0';
+                label.style.background = '#fafbfe';
+                label.style.color = '#64748b';
+            }
+        });
+    }
+
+    /* ─────────────
+       Wire up buttons
+       ───────────── */
+
+    // QR button in the member table — opens the modal
+    document.addEventListener('click', function(e) {
+        const qrBtn = e.target.closest('.member-action.qr');
+        if (qrBtn) {
+            e.preventDefault();
+            openQrModal(
+                qrBtn.getAttribute('data-id'),
+                qrBtn.getAttribute('data-name'),
+                qrBtn.getAttribute('data-username'),
+                qrBtn.getAttribute('data-password')
+            );
+        }
+    });
+
+    // Enter key in password field triggers regenerate
+    document.addEventListener('DOMContentLoaded', function() {
+        const pwInput = document.getElementById('qrPasswordInput');
+        if (pwInput) {
+            pwInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    generateQrCode();
+                }
+            });
+        }
+    });
+
+    /* ═══════════════════════════════════════════════════════════════
+       CREDENTIALS MODAL
+       ═══════════════════════════════════════════════════════════════ */
+    function closeCredentialsModal() {
+        const modal = document.getElementById('credentialsModal');
+        if (modal) modal.classList.remove('active');
+        document.body.classList.remove('modal-open-custom');
+    }
+
+    function copyCredential(fieldId, btn) {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+        field.select();
+        field.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(field.value).then(() => {
+            const original = btn.textContent;
+            btn.textContent = '✅ Copied';
+            setTimeout(() => { btn.textContent = original; }, 1500);
+        }).catch(err => {
+            try {
+                document.execCommand('copy');
+                const original = btn.textContent;
+                btn.textContent = '✅ Copied';
+                setTimeout(() => { btn.textContent = original; }, 1500);
+            } catch (e) {
+                alert('Could not copy: ' + err.message);
+            }
+        });
+    }
+
+    function copyAllCredentials() {
+        const username = document.getElementById('credUsername');
+        const password = document.getElementById('credPassword');
+        if (!username || !password) return;
+        const text = `Username: ${username.value}\nPassword: ${password.value}`;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('✅ Credentials copied to clipboard!');
+        }).catch(err => {
+            alert('Could not copy: ' + err.message);
+        });
+    }
+
+    {% if new_member_credentials %}
+    function generateQrForNewMember() {
+        const username = document.getElementById('credUsername').value;
+        const password = document.getElementById('credPassword').value;
+        const memberId = {{ new_member_credentials.id }};
+        const fullName = {{ new_member_credentials.full_name | tojson }};
+
+        const credModal = document.getElementById('credentialsModal');
+        if (credModal) credModal.classList.remove('active');
+
+        // openQrModal auto-fills password AND auto-generates
+        openQrModal(memberId, fullName, username, password);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('credentialsModal');
+        if (modal && modal.classList.contains('active')) {
+            document.body.classList.add('modal-open-custom');
+        }
+    });
+    {% endif %}
+</script>
+{% endblock %}

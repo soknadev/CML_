@@ -1,0 +1,1422 @@
+{% extends "base.html" %}
+{% block title %}Summary Report - CMS{% endblock %}
+
+{% block content %}
+<style>
+    /* ═══════════════════════════════════════════════════════════
+       FONTS - INTER (English) + KH MER OS BATTAMBANG (Khmer Fallback)
+       ═══════════════════════════════════════════════════════════ */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Battambang:wght@400;700&display=swap');
+
+    /* ─── CSS Variables ─── */
+    :root {
+        --primary: #1a3a5c;
+        --primary-light: #2b5d8d;
+        --primary-dark: #0f2a44;
+        --primary-gradient: linear-gradient(135deg, #1a3a5c 0%, #2b5d8d 100%);
+        --secondary: #e8f0fe;
+        --accent: #00b4a0;
+        --accent-light: #d4f5f0;
+        --bg-body: #f0f4fa;
+        --card-shadow: 0 8px 30px rgba(26, 58, 92, 0.08);
+        --card-hover-shadow: 0 12px 40px rgba(26, 58, 92, 0.14);
+        --radius: 14px;
+        --radius-sm: 8px;
+        --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        --font-sans: 'Inter', 'Khmer OS Battambang', 'Battambang', 'Kantumruy Pro', system-ui, -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body, h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, select, textarea, th, td {
+        font-family: var(--font-sans);
+    }
+
+    .report-container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 24px 28px 40px;
+    }
+
+    /* ─── Cards ─── */
+    .report-card {
+        background: #ffffff;
+        border-radius: var(--radius);
+        box-shadow: var(--card-shadow);
+        padding: 24px 28px;
+        margin-bottom: 24px;
+        border: 1px solid rgba(26, 58, 92, 0.06);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .report-card:hover {
+        box-shadow: var(--card-hover-shadow);
+        border-color: rgba(43, 93, 141, 0.12);
+    }
+    .report-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--primary-gradient);
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .report-card:hover::before { opacity: 1; }
+
+    .report-card .card-header-custom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #f1f5f9;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .report-card .card-header-custom h5 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        letter-spacing: -0.2px;
+    }
+    .report-card .card-header-custom h5 .header-icon { font-size: 1.3rem; line-height: 1; }
+    .report-card .card-header-custom .card-badge {
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        padding: 4px 14px;
+        border-radius: 20px;
+        background: var(--secondary);
+        color: var(--primary-light);
+        border: 1px solid rgba(43, 93, 141, 0.12);
+    }
+
+    /* ─── Header ─── */
+    .report-header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 6px;
+    }
+    .report-title-wrapper { display: flex; align-items: center; gap: 14px; }
+    .report-title-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: var(--primary-gradient);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        flex-shrink: 0;
+        box-shadow: 0 4px 14px rgba(26, 58, 92, 0.25);
+    }
+    .report-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--primary);
+        letter-spacing: -0.5px;
+        margin: 0;
+        line-height: 1.2;
+    }
+    .report-title .sub {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #8899aa;
+        letter-spacing: 0.2px;
+        display: block;
+        margin-top: 2px;
+    }
+
+    .report-header-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .report-header-actions .btn {
+        font-weight: 600;
+        border-radius: var(--radius-sm);
+        padding: 0.5rem 1.2rem;
+        font-size: 0.8rem;
+        transition: var(--transition);
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        text-decoration: none;
+    }
+    .report-header-actions .btn::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(0);
+        border-radius: 50%;
+        transition: transform 0.4s ease;
+        pointer-events: none;
+    }
+    .report-header-actions .btn:active::after { transform: scale(2); }
+    .report-header-actions .btn:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18);
+    }
+    .report-header-actions .btn:active { transform: translateY(0px) scale(0.97); }
+
+    .btn-fee { background: linear-gradient(135deg, #00b4a0, #008c7a); color: #fff; }
+    .btn-fee:hover { background: linear-gradient(135deg, #00c9b3, #009688); color: #fff; box-shadow: 0 8px 25px rgba(0, 180, 160, 0.35); }
+
+    .btn-fee-input { background: linear-gradient(135deg, #8b5cf6, #6d3b9b); color: #fff; }
+    .btn-fee-input:hover { background: linear-gradient(135deg, #a78bfa, #7c3aed); color: #fff; box-shadow: 0 8px 25px rgba(139, 92, 246, 0.35); }
+
+    .btn-print { background: var(--primary-gradient); color: #fff; }
+    .btn-print:hover { background: linear-gradient(135deg, #1f4a72, #0f2a44); color: #fff; box-shadow: 0 8px 25px rgba(26, 58, 92, 0.35); }
+
+    .btn-csv { background: linear-gradient(135deg, #2d8f47, #1e6b34); color: #fff; }
+    .btn-csv:hover { background: linear-gradient(135deg, #34a054, #237a3b); color: #fff; box-shadow: 0 8px 25px rgba(45, 143, 71, 0.35); }
+
+    /* ─── Report Period Bar ─── */
+    .report-period {
+        background: linear-gradient(135deg, #f8faff, #eef4fa);
+        border-radius: var(--radius-sm);
+        padding: 14px 22px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px 36px;
+        margin-top: 14px;
+        border: 1px solid rgba(26, 58, 92, 0.06);
+        align-items: center;
+    }
+    .report-period .item { display: flex; align-items: baseline; gap: 6px; }
+    .report-period .label { font-weight: 600; color: #6b7a8f; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .report-period .value { font-weight: 700; color: var(--primary); font-size: 0.92rem; }
+    .report-period .value .highlight { background: rgba(43, 93, 141, 0.08); padding: 2px 12px; border-radius: 12px; font-weight: 700; }
+
+    /* ═══════════════════════════════════════════════════════════
+       ULTRA-MODERN REDESIGNED FILTER BAR
+       ═══════════════════════════════════════════════════════════ */
+    .filter-bar {
+        background: linear-gradient(135deg, #ffffff 0%, #f9fbff 100%);
+        border: 1px solid rgba(26, 58, 92, 0.08);
+        border-radius: 18px;
+        padding: 22px 26px;
+        margin-bottom: 24px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        box-shadow: 0 10px 30px rgba(26, 58, 92, 0.04);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        align-items: end;
+    }
+    .filter-bar:hover {
+        border-color: rgba(43, 93, 141, 0.2);
+        box-shadow: 0 14px 40px rgba(26, 58, 92, 0.08);
+    }
+    .filter-group-modern { display: flex; flex-direction: column; gap: 8px; }
+    .filter-group-modern.full-width { grid-column: 1 / -1; }
+    .filter-label-modern {
+        font-weight: 700;
+        font-size: 0.72rem;
+        color: #475569;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .filter-label-modern i { color: var(--primary-light); font-size: 0.85rem; }
+
+    .filter-input-modern, .filter-select-modern {
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 0.82rem;
+        background: #ffffff;
+        color: #1e293b;
+        font-weight: 600;
+        outline: none;
+        transition: all 0.2s ease;
+        width: 100%;
+        height: 42px;
+    }
+    .filter-input-modern:hover, .filter-select-modern:hover { border-color: #cbd5e1; }
+    .filter-input-modern:focus, .filter-select-modern:focus {
+        border-color: var(--primary-light);
+        background: #ffffff;
+        box-shadow: 0 0 0 4px rgba(43, 93, 141, 0.12);
+    }
+    .filter-select-modern {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 12px;
+        padding-right: 36px;
+    }
+
+    .date-range-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: #ffffff;
+        padding: 4px 12px;
+        border-radius: 10px;
+        border: 1.5px solid #e2e8f0;
+        height: 42px;
+        width: 100%;
+        transition: all 0.2s ease;
+        min-width: 0;
+    }
+    .date-range-wrapper:hover { border-color: #cbd5e1; }
+    .date-range-wrapper:focus-within {
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 4px rgba(43, 93, 141, 0.12);
+    }
+    .date-range-wrapper input[type="date"] {
+        border: none;
+        background: transparent;
+        padding: 4px 0;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #334155;
+        outline: none;
+        width: 100%;
+        min-width: 0;
+        cursor: pointer;
+        flex: 1;
+    }
+    .date-range-wrapper input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.5; padding: 2px; width: 16px; height: 16px; }
+    .date-range-wrapper input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 0.9; }
+    .date-range-divider { color: #94a3b8; font-size: 0.7rem; font-weight: 600; padding: 0 2px; white-space: nowrap; flex-shrink: 0; }
+
+    .btn-group-modern {
+        display: flex;
+        background: #f1f5f9;
+        padding: 4px;
+        border-radius: 10px;
+        gap: 4px;
+        height: 42px;
+        align-items: center;
+    }
+    .btn-group-modern .btn-tab {
+        flex: 1;
+        border-radius: 8px;
+        padding: 0 10px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        border: none;
+        background: transparent;
+        color: #64748b;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    .btn-group-modern .btn-tab:hover { color: var(--primary-light); }
+    .btn-group-modern .btn-tab.active {
+        background: #ffffff;
+        color: var(--primary);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .filter-actions-row {
+        display: flex;
+        gap: 10px;
+        grid-column: 1 / -1;
+        padding-top: 8px;
+        border-top: 1px dashed #e2e8f0;
+        margin-top: 4px;
+        justify-content: flex-end;
+    }
+    .btn-modern-apply {
+        background: var(--primary-gradient);
+        color: #fff;
+        border: none;
+        padding: 0 22px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(43, 93, 141, 0.2);
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+    .btn-modern-apply:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(43, 93, 141, 0.3); color: #fff; }
+    .btn-modern-apply:active { transform: translateY(0px) scale(0.97); }
+    .btn-modern-reset {
+        background: #f1f5f9;
+        color: #475569;
+        border: 1.5px solid #e2e8f0;
+        padding: 0 20px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+    .btn-modern-reset:hover { background: #e2e8f0; border-color: #cbd5e1; color: #1e293b; transform: translateY(-2px); }
+    .btn-modern-reset:active { transform: translateY(0px) scale(0.97); }
+    /* ═══════════════════════════════════════════════════════════
+       END ULTRA-MODERN FILTER BAR
+       ═══════════════════════════════════════════════════════════ */
+
+    /* ─── Stats Grid ─── */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 16px;
+        margin-bottom: 4px;
+    }
+    .stat-item {
+        background: #ffffff;
+        border: 1px solid rgba(26, 58, 92, 0.06);
+        border-radius: var(--radius-sm);
+        padding: 18px 14px 14px;
+        text-align: center;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-item::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 20%;
+        right: 20%;
+        height: 3px;
+        background: var(--primary-gradient);
+        border-radius: 2px 2px 0 0;
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .stat-item:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(26, 58, 92, 0.08); border-color: rgba(43, 93, 141, 0.15); }
+    .stat-item:hover::after { opacity: 1; left: 10%; right: 10%; }
+    .stat-item .stat-icon-wrap {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 6px;
+        font-size: 1.4rem;
+        background: var(--secondary);
+        color: var(--primary-light);
+        transition: var(--transition);
+    }
+    .stat-item:hover .stat-icon-wrap { transform: scale(1.05); background: var(--primary-gradient); color: #fff; box-shadow: 0 4px 14px rgba(43, 93, 141, 0.20); }
+    .stat-item .number { font-size: 1.7rem; font-weight: 800; color: var(--primary); line-height: 1.2; letter-spacing: -0.5px; }
+    .stat-item .label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.6px; color: #8a9aa8; font-weight: 700; margin-top: 2px; }
+
+    /* ═══════════════════════════════════════════════════════════
+       CUSTOM SCROLLBAR
+       ═══════════════════════════════════════════════════════════ */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -4px;
+        border-radius: var(--radius-sm);
+        scrollbar-width: thin;
+        scrollbar-color: transparent transparent;
+        transition: scrollbar-color 0.3s ease;
+    }
+    .table-responsive:hover { scrollbar-color: var(--primary-light) transparent; }
+    .table-responsive::-webkit-scrollbar { height: 10px; background: transparent; }
+    .table-responsive::-webkit-scrollbar-track { background: transparent; border-radius: 6px; }
+    .table-responsive::-webkit-scrollbar-thumb { background: var(--primary-light); border-radius: 6px; border: 2px solid #e9edf4; opacity: 0; transition: opacity 0.3s ease; }
+    .table-responsive:hover::-webkit-scrollbar-thumb { opacity: 1; }
+
+    /* ─── Tables ─── */
+    .table {
+        width: 100%;
+        font-size: 0.85rem;
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+    }
+    .table thead th {
+        background: #f1f6fc;
+        color: var(--primary);
+        font-weight: 700;
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 12px 14px;
+        border-bottom: 2px solid #e2e8f0;
+        white-space: nowrap;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+    .table tbody td {
+        padding: 10px 14px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        color: #1f2d3d;
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+    .table tbody tr:last-child td { border-bottom: none; }
+    .table tbody tr { transition: var(--transition); }
+    .table tbody tr:hover { background: #f6faff; }
+    .table tfoot td {
+        padding: 12px 14px;
+        background: #f1f6fc;
+        font-weight: 700;
+        border-top: 2px solid #e2e8f0;
+        color: var(--primary);
+        white-space: nowrap;
+    }
+    .table-striped tbody tr:nth-of-type(odd) { background: #fafcff; }
+    .table-striped tbody tr:nth-of-type(odd):hover { background: #f1f6fc; }
+
+    .table .text-end { text-align: right; }
+    .table .text-center { text-align: center; }
+
+    /* ═══════════════════════════════════════════════════════════
+       SPECIMEN BREAKDOWN — restyled
+       ═══════════════════════════════════════════════════════════ */
+    .table-specimen tbody td { white-space: nowrap; }
+    .table-specimen th:nth-child(3), .table-specimen td:nth-child(3) { width: 46%; }
+
+    .specimen-row { display: flex; align-items: center; gap: 10px; }
+    .specimen-dot { width: 12px; height: 12px; border-radius: 4px; flex-shrink: 0; }
+    .specimen-dot.dot-blood  { background: #ef4444; }
+    .specimen-dot.dot-serum  { background: #f97316; }
+    .specimen-dot.dot-urine  { background: #10b981; }
+    .specimen-dot.dot-swab   { background: #3b82f6; }
+    .specimen-dot.dot-plasma { background: #8b5cf6; }
+    .specimen-dot.dot-stool  { background: #f59e0b; }
+    .specimen-dot.dot-other  { background: #64748b; }
+
+    .specimen-name { font-weight: 700; color: var(--primary); font-size: 0.86rem; }
+    .specimen-count { font-size: 0.95rem; color: #1e293b; }
+
+    .pct-cell { display: flex; align-items: center; gap: 12px; min-width: 180px; white-space: nowrap; }
+    .pct-track { flex: 1; height: 9px; background: #eef2f7; border-radius: 20px; overflow: hidden; min-width: 90px; }
+    .pct-fill { height: 100%; border-radius: 20px; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+    .pct-fill.fill-blood  { background: linear-gradient(90deg, #f87171, #ef4444); }
+    .pct-fill.fill-serum  { background: linear-gradient(90deg, #fb923c, #f97316); }
+    .pct-fill.fill-urine  { background: linear-gradient(90deg, #34d399, #10b981); }
+    .pct-fill.fill-swab   { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
+    .pct-fill.fill-plasma { background: linear-gradient(90deg, #a78bfa, #8b5cf6); }
+    .pct-fill.fill-stool  { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+    .pct-fill.fill-other  { background: linear-gradient(90deg, #94a3b8, #64748b); }
+    .pct-label { font-weight: 700; font-size: 0.78rem; color: var(--primary); min-width: 42px; text-align: right; }
+
+    /* ═══════════════════════════════════════════════════════════
+       COLLECTION BY FACILITY — restyled
+       ═══════════════════════════════════════════════════════════ */
+    .facility-row { display: flex; align-items: center; gap: 12px; }
+    .facility-avatar { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, #ebe4f7, #d9c9f2); color: #5a3d8a; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; flex-shrink: 0; }
+    .facility-name { font-weight: 700; color: var(--primary); font-size: 0.86rem; white-space: normal; }
+
+    .stat-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.78rem; }
+    .stat-chip.chip-patients { background: #eef4fa; color: var(--primary-light); }
+    .stat-chip.chip-specimens { background: #ddf4e6; color: #0e6b3a; }
+    .avg-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 13px; border-radius: 12px; font-weight: 700; font-size: 0.78rem; background: linear-gradient(135deg, #d4f5f0, #b8ede4); color: #007a6b; }
+
+    /* ═══════════════════════════════════════════════════════════
+       DAILY COLLECTION SUMMARY — restyled
+       ═══════════════════════════════════════════════════════════ */
+    .date-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px; border-radius: 20px; font-weight: 700; font-size: 0.78rem; background: #edf1f5; color: #4a5a6e; }
+    .date-badge i { color: var(--primary-light); font-size: 0.7rem; }
+    .trend-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 13px; border-radius: 20px; font-weight: 700; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+    .trend-pill i { font-size: 0.68rem; }
+    .trend-pill.trend-up      { background: #ddf4e6; color: #0e6b3a; }
+    .trend-pill.trend-stable  { background: #fff3d6; color: #8a6d0b; }
+    .trend-pill.trend-down    { background: #fce8ec; color: #a82a3a; }
+
+    /* ─── Badges ─── */
+    .badge { font-weight: 600; padding: 3px 12px; border-radius: 20px; font-size: 0.72rem; display: inline-block; letter-spacing: 0.2px; transition: var(--transition); white-space: nowrap; }
+    .badge-info { background: #e2edfa; color: #1a4b7a; }
+    .badge-success { background: #ddf4e6; color: #0e6b3a; }
+    .badge-primary { background: var(--primary-gradient); color: #fff; }
+    .badge-secondary { background: #edf1f5; color: #4a5a6e; }
+    .badge-warning { background: #fff3d6; color: #8a6d0b; }
+    .badge-teal { background: #d4f5f0; color: #007a6b; }
+    .badge-rose { background: #fce8ec; color: #a82a3a; }
+    .badge-purple { background: #ebe4f7; color: #5a3d8a; }
+
+    /* ─── SPECIMEN PILL STYLES ─── */
+    .specimen-pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; margin: 1px 2px; white-space: nowrap; }
+    .pill-blood   { background: #fee2e2; color: #b91c1c; }
+    .pill-serum   { background: #ffedd5; color: #c2410c; }
+    .pill-urine   { background: #d1fae5; color: #065f46; }
+    .pill-swab    { background: #dbeafe; color: #1e40af; }
+    .pill-plasma  { background: #ede9fe; color: #5b21b6; }
+    .pill-stool   { background: #fef3c7; color: #92400e; }
+    .pill-other   { background: #f1f5f9; color: #475569; }
+
+    /* ─── Other Badges ─── */
+    .badge-dur { background: #e8f4fd; color: #2b5d8d; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+    .badge-specimen { background: #2b5d8d; color: white; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+    .badge-fees { background: #16a085; color: white; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+
+    /* ─── Empty State ─── */
+    .empty-state { text-align: center; padding: 40px 20px 32px; color: #8a9aa8; }
+    .empty-state .empty-icon { font-size: 2.6rem; display: block; margin-bottom: 12px; opacity: 0.6; }
+    .empty-state p { font-size: 0.95rem; font-weight: 500; color: #6b7a8f; margin: 0; }
+
+    /* ─── Toggle Button ─── */
+    .toggle-details-btn { background: none; border: none; color: var(--primary-light); font-weight: 600; font-size: 0.78rem; cursor: pointer; padding: 4px 14px; border-radius: 20px; transition: var(--transition); background: var(--secondary); display: inline-flex; align-items: center; gap: 6px; }
+    .toggle-details-btn:hover { background: #d4e2f5; color: var(--primary-dark); transform: scale(1.02); }
+
+    /* ─── MODAL (Fee Detail) ─── */
+    #feeModalOverlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 99999; align-items: center; justify-content: center; padding: 20px; animation: overlayFade 0.25s ease; }
+    #feeModalOverlay.active { display: flex; }
+    @keyframes overlayFade { from { opacity: 0; } to { opacity: 1; } }
+
+    #feeModal { background: #ffffff; border-radius: 18px; max-width: 900px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4); animation: modalSlide 0.3s ease; overflow: hidden; }
+    @keyframes modalSlide { from { opacity: 0; transform: translateY(-30px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+    .modal-header-custom { background: linear-gradient(135deg, #0a1a2e 0%, #1a3a5c 50%, #1a4a7a 100%); color: #fff; padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; border-bottom: 3px solid rgba(255, 255, 255, 0.1); margin-top: 25px; }
+    .modal-header-left { display: flex; align-items: center; gap: 14px; }
+    .modal-header-icon { font-size: 1.6rem; width: 44px; height: 44px; background: rgba(255, 255, 255, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .modal-header-custom h5 { margin: 0; font-weight: 700; font-size: 1.2rem; letter-spacing: -0.2px; line-height: 1.2; color: #fff; }
+    .modal-header-sub { font-weight: 400; font-size: 0.8rem; opacity: 0.8; display: block; margin-top: 1px; color: #b0d0f0; }
+
+    .modal-close-btn { background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255, 255, 255, 0.2); color: #fff; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; transition: all 0.25s ease; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .modal-close-btn:hover { background: rgba(255, 255, 255, 0.3); border-color: rgba(255, 255, 255, 0.5); transform: rotate(90deg) scale(1.05); }
+    .modal-close-btn svg { stroke: #fff; }
+
+    .fee-modal-body { flex: 1; overflow-y: auto; padding: 24px 28px; background: #f8faff; }
+    .fee-modal-body::-webkit-scrollbar { width: 6px; }
+    .fee-modal-body::-webkit-scrollbar-track { background: #eef2f7; border-radius: 4px; }
+    .fee-modal-body::-webkit-scrollbar-thumb { background: #c8d4e0; border-radius: 4px; }
+    .fee-modal-body::-webkit-scrollbar-thumb:hover { background: #b0bcca; }
+
+    .fee-tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #edf2f7; padding-bottom: 0; }
+    .fee-tab { padding: 10px 24px; border: none; border-radius: 10px 10px 0 0; font-weight: 700; font-size: 0.85rem; cursor: pointer; background: transparent; color: #6b7a8f; transition: all 0.25s ease; position: relative; display: flex; align-items: center; gap: 8px; }
+    .fee-tab .tab-icon { font-size: 1.1rem; }
+    .fee-tab::after { content: ''; position: absolute; bottom: -2px; left: 50%; width: 0; height: 3px; background: linear-gradient(135deg, #1a3a5c, #2b5d8d); border-radius: 3px 3px 0 0; transition: all 0.3s ease; transform: translateX(-50%); }
+    .fee-tab.active { color: var(--primary); background: #f1f6fc; }
+    .fee-tab.active::after { width: 70%; }
+    .fee-tab:hover:not(.active) { color: var(--primary-light); background: #f5f8fc; }
+
+    .fee-modal-footer { padding: 14px 28px; border-top: 1px solid #edf2f7; text-align: right; background: #ffffff; flex-shrink: 0; border-radius: 0 0 18px 18px; }
+    .modal-footer-close { background: #f1f4f9; border: none; padding: 8px 28px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; color: #4a5a6e; cursor: pointer; transition: all 0.2s ease; }
+    .modal-footer-close:hover { background: #e2e8f0; }
+
+    /* ─── FORMAL PRINT BODY ─── */
+    .cammed-header { text-align: center; font-family: 'Montserrat', system-ui, sans-serif; font-weight: 900; font-size: 1.9rem; letter-spacing: -0.5px; margin-bottom: 2px; line-height: 1.2; }
+    .cammed-header .cm { color: #1a3a5c; }
+    .cammed-header .red-a { color: #c0392b; }
+    .cammed-header .lab { color: #1a3a5c; font-weight: 700; }
+    .cammed-sub { text-align: center; font-size: 0.7rem; color: #8a9aa8; letter-spacing: 1.5px; margin-top: -2px; margin-bottom: 14px; font-weight: 500; text-transform: uppercase; }
+    .member-header { margin-bottom: 14px; font-weight: 700; color: var(--primary); font-size: 1.05rem; text-align: center; letter-spacing: -0.2px; background: var(--secondary); padding: 8px 16px; border-radius: var(--radius-sm); display: inline-block; width: auto; margin-left: auto; margin-right: auto; }
+    .print-time { text-align: right; font-size: 0.7rem; color: #8a9aa8; margin-bottom: 10px; font-weight: 500; letter-spacing: 0.2px; }
+
+    /* ─── FORMAL SIGNATURE SECTION ─── */
+    .signature-footer {
+        margin-top: 40px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: var(--primary);
+        padding-top: 20px;
+        flex-wrap: wrap;
+        gap: 20px;
+        page-break-inside: avoid;
+    }
+    .signature-block {
+        flex: 1;
+        min-width: 150px;
+        text-align: center;
+        position: relative;
+    }
+    .signature-label {
+        font-weight: 700;
+        color: var(--primary);
+        font-size: 0.8rem;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+        display: block;
+    }
+    .signature-line {
+        width: 90%;
+        margin: 0 auto;
+        border-bottom: 1.5px solid var(--primary);
+        height: 35px;
+    }
+    .signature-name {
+        font-weight: 700;
+        color: var(--primary);
+        font-size: 0.85rem;
+        margin: 0;
+        padding-top: 4px;
+    }
+    .signature-role {
+        font-weight: 500;
+        color: #8a9aa8;
+        font-size: 0.7rem;
+        margin: 0;
+    }
+
+    #printContainer { display: none; }
+
+    /* ─── Print Styles ─── */
+    @media print {
+        .no-print { display: none !important; }
+        .report-card { box-shadow: none !important; border: 1px solid #dce2ea !important; page-break-inside: avoid; padding: 16px 20px; margin-bottom: 14px; border-radius: 4px; background: #fff !important; }
+        .report-card::before { display: none !important; }
+        .filter-bar { display: none !important; }
+        .report-header { display: none !important; }
+        .report-container { padding: 0 10px !important; }
+        .table { font-size: 0.7rem !important; }
+        .table thead th { background: #eef2f7 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        .stat-item { border: 1px solid #dce2ea !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        .stat-item .stat-icon-wrap { background: #eef2f7 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        .report-period { background: #f5f8fc !important; border: 1px solid #dce2ea !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        .toggle-details-btn { display: none !important; }
+        #detailsTable, #specimenTable, #facilityTable, #dailyTable { display: block !important; }
+        .stats-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 10px !important; }
+        body { background: #fff !important; }
+        .badge { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        .badge-primary { background: #1a3a5c !important; color: #fff !important; }
+        .badge-success { background: #ddf4e6 !important; color: #0e6b3a !important; }
+        .badge-info { background: #e2edfa !important; color: #1a4b7a !important; }
+        .badge-teal { background: #d4f5f0 !important; color: #007a6b !important; }
+        .table tfoot td { background: #eef2f7 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        .report-card .card-header-custom h5 { font-size: 0.9rem !important; }
+        .stat-item .number { font-size: 1.3rem !important; }
+        .signature-footer { border-top-color: #dce2ea !important; }
+        .signature-line { border-bottom-color: var(--primary) !important; }
+        .cammed-header { font-size: 1.4rem !important; }
+        #feeModalOverlay, #printContainer { display: none !important; }
+        #detailsTable { width: 100% !important; }
+        #detailsTable .table { min-width: 1200px !important; width: 100% !important; }
+        .table-responsive { scrollbar-width: none; }
+        .pct-fill, .specimen-dot, .trend-pill, .avg-badge, .stat-chip { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 1024px) { .report-container { padding: 16px 18px 30px; } .report-card { padding: 18px 20px; } }
+    @media (max-width: 768px) {
+        .filter-bar { grid-template-columns: 1fr; padding: 16px; }
+        .report-period { gap: 10px 18px; padding: 12px 16px; }
+        .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .stat-item { padding: 14px 10px 10px; }
+        .stat-item .number { font-size: 1.3rem; }
+        .stat-item .stat-icon-wrap { width: 36px; height: 36px; font-size: 1.1rem; }
+        .report-title { font-size: 1.2rem; }
+        .report-title .sub { font-size: 0.65rem; }
+        .report-title-icon { width: 40px; height: 40px; font-size: 1.3rem; }
+        .report-header-actions .btn { font-size: 0.7rem; padding: 0.35rem 0.9rem; }
+        .report-card .card-header-custom h5 { font-size: 0.92rem; }
+        .fee-tabs { flex-wrap: wrap; }
+        .fee-tab { padding: 8px 16px; font-size: 0.78rem; }
+        .signature-footer { flex-direction: column; gap: 12px; }
+        .report-container { padding: 12px 12px 24px; }
+        .report-card { padding: 14px 14px; }
+        #feeModal { max-height: 95vh; }
+        .modal-header-custom { padding: 16px 20px; }
+        .modal-header-custom h5 { font-size: 1rem; }
+        .modal-header-icon { width: 38px; height: 38px; font-size: 1.3rem; }
+        .modal-close-btn { width: 38px; height: 38px; }
+        .fee-modal-body { padding: 18px 16px; }
+        .fee-modal-footer { padding: 12px 16px; }
+        .pct-cell { min-width: 120px; gap: 8px; }
+        .pct-track { min-width: 60px; }
+    }
+    @media (max-width: 480px) {
+        .stats-grid { grid-template-columns: 1fr 1fr; }
+        .report-period { flex-direction: column; align-items: flex-start; gap: 6px; }
+        .report-period .item { width: 100%; }
+        .report-header { flex-direction: column; align-items: flex-start; }
+        .report-header-actions { width: 100%; justify-content: flex-start; }
+        .report-title-wrapper { width: 100%; }
+        .report-title-icon { width: 36px; height: 36px; font-size: 1.1rem; }
+        .report-title { font-size: 1rem; }
+        .stat-item .number { font-size: 1.1rem; }
+        .stat-item .label { font-size: 0.55rem; }
+        .table { font-size: 0.75rem; }
+        .table thead th, .table tbody td, .table tfoot td { padding: 6px 8px; }
+        .badge { font-size: 0.6rem; padding: 2px 8px; }
+        .report-card .card-header-custom { flex-direction: column; align-items: flex-start; }
+        .toggle-details-btn { font-size: 0.7rem; padding: 2px 12px; }
+        #feeModal { max-height: 95vh; border-radius: 14px; }
+        .modal-header-custom { padding: 14px 16px; }
+        .modal-header-left { gap: 10px; }
+        .modal-header-icon { width: 34px; height: 34px; font-size: 1.1rem; }
+        .modal-header-custom h5 { font-size: 0.9rem; }
+        .modal-header-sub { font-size: 0.7rem; }
+        .modal-close-btn { width: 34px; height: 34px; }
+        .fee-modal-body { padding: 14px 12px; }
+        .fee-tab { font-size: 0.7rem; padding: 6px 12px; }
+        .fee-tab .tab-icon { font-size: 0.9rem; }
+        .fee-modal-footer { padding: 10px 14px; }
+        .modal-footer-close { padding: 6px 20px; font-size: 0.8rem; }
+        .facility-avatar { width: 28px; height: 28px; font-size: 0.72rem; }
+        .stat-chip { font-size: 0.68rem; padding: 3px 9px; }
+        .date-range-wrapper { padding: 4px 8px; height: 36px; }
+        .date-range-wrapper input[type="date"] { font-size: 0.68rem; }
+        .date-range-divider { font-size: 0.6rem; }
+    }
+</style>
+
+<div class="report-container">
+    <!-- ═══════════════════════════════════════════════════════════
+         ULTRA-MODERN REDESIGNED FILTER BAR
+         ═══════════════════════════════════════════════════════════ -->
+    <div class="filter-bar no-print">
+        <div class="filter-group-modern">
+            <label class="filter-label-modern"><i class="fas fa-calendar-alt"></i> Quick Period</label>
+            <div class="btn-group-modern">
+                <a href="/report?type=daily&value={{ today.strftime('%Y-%m-%d') }}" class="btn-tab {% if report_type == 'daily' and not from_date %}active{% endif %}">Today</a>
+                <a href="/report?type=weekly&value={{ today.strftime('%Y-%m-%d') }}" class="btn-tab {% if report_type == 'weekly' and not from_date %}active{% endif %}">Week</a>
+                <a href="/report?type=monthly&value={{ today.strftime('%Y-%m') }}" class="btn-tab {% if report_type == 'monthly' and not from_date %}active{% endif %}">Month</a>
+                <a href="/report?type=yearly&value={{ today.strftime('%Y') }}" class="btn-tab {% if report_type == 'yearly' and not from_date %}active{% endif %}">Year</a>
+            </div>
+        </div>
+
+        <div class="filter-group-modern">
+            <label class="filter-label-modern"><i class="fas fa-clock"></i> Custom Range</label>
+            <div class="date-range-wrapper">
+                <input type="date" id="from_date" value="{{ from_date or '' }}" title="From Date">
+                <span class="date-range-divider">to</span>
+                <input type="date" id="to_date" value="{{ to_date or '' }}" title="To Date">
+            </div>
+        </div>
+
+        {% if is_admin %}
+        <div class="filter-group-modern">
+            <label class="filter-label-modern"><i class="fas fa-user-md"></i> Collector</label>
+            <select class="filter-select-modern" id="collector_filter">
+                <option value="">All Collectors</option>
+                {% for c in all_collectors %}
+                <option value="{{ c.username }}" {% if filter_collector == c.username %}selected{% endif %}>{{ c.full_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+
+        <div class="filter-group-modern">
+            <label class="filter-label-modern"><i class="fas fa-hospital"></i> Facility</label>
+            <select class="filter-select-modern" id="facility_filter">
+                <option value="">All Facilities</option>
+                {% for f in all_facilities %}
+                <option value="{{ f }}" {% if filter_facility == f %}selected{% endif %}>{{ f }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filter-group-modern">
+            <label class="filter-label-modern"><i class="fas fa-vial"></i> Sample Type</label>
+            <select class="filter-select-modern" id="sample_type_filter">
+                <option value="">All Sample Types</option>
+                {% for st in all_sample_types %}
+                <option value="{{ st }}" {% if filter_sample_type == st %}selected{% endif %}>{{ st }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filter-actions-row">
+            <button class="btn-modern-apply" onclick="applyFilters()"><i class="fas fa-filter"></i> Apply Filters</button>
+            <a href="/report?type=monthly&value={{ today.strftime('%Y-%m') }}" class="btn-modern-reset"><i class="fas fa-undo"></i> Reset Filters</a>
+        </div>
+    </div>
+    <!-- ═══════════════════════════════════════════════════════════
+         END ULTRA-MODERN FILTER BAR
+         ═══════════════════════════════════════════════════════════ -->
+
+    <!-- ─── REPORT HEADER ─── -->
+    <div class="report-card" style="padding-bottom:8px;">
+        <div class="report-header">
+            <div class="report-title-wrapper">
+                <div class="report-title-icon">📊</div>
+                <div>
+                    <div class="report-title">
+                        Summary Report
+                        <span class="sub">{% if is_admin %}Team-wide collection overview{% else %}Your collection overview{% endif %}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="report-header-actions no-print">
+                <button class="btn btn-fee" onclick="openFeeModal()">💰 Fee Detail</button>
+                {% if not is_admin %}
+                <a href="/fee_input{% if from_date %}?from_date={{ from_date }}&to_date={{ to_date }}{% endif %}{% if filter_collector %}&collector={{ filter_collector }}{% endif %}" class="btn btn-fee-input">✏️ Fee Input</a>
+                {% endif %}
+                <a href="/print_report?type={{ report_type }}&value={{ report_value }}{% if from_date %}&from_date={{ from_date }}&to_date={{ to_date }}{% endif %}{% if filter_collector %}&collector={{ filter_collector }}{% endif %}" target="_blank" class="btn btn-print">🖨️ Print</a>
+                <a href="/export_csv?from_date={{ from_date or '' }}&to_date={{ to_date or '' }}&collector={{ filter_collector or '' }}" class="btn btn-csv">📥 CSV</a>
+            </div>
+        </div>
+
+        <div class="report-period">
+            <div class="item">
+                <span class="label">📆 Period</span>
+                <span class="value">
+                    {% if from_date and to_date %}
+                    <span class="highlight">{{ from_date }}</span> → <span class="highlight">{{ to_date }}</span>
+                    {% elif report_type == 'daily' %}
+                    <span class="highlight">{{ report_value }}</span>
+                    {% elif report_type == 'monthly' %}
+                    <span class="highlight">{{ report_value }}</span>
+                    {% elif report_type == 'yearly' %}
+                    <span class="highlight">{{ report_value }}</span>
+                    {% else %}
+                    <span class="highlight">Custom</span>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="item">
+                <span class="label">👤 Collector</span>
+                <span class="value">
+                    {% if is_admin and filter_collector %}
+                    {{ filter_collector }}
+                    {% elif is_admin %}
+                    All Collectors
+                    {% else %}
+                    {{ member.full_name }}
+                    {% endif %}
+                </span>
+            </div>
+            <div class="item">
+                <span class="label">🕐 Generated</span>
+                <span class="value">{{ now.strftime('%Y-%m-%d %H:%M') }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Main Statistics -->
+    <div class="report-card">
+        <div class="card-header-custom">
+            <h5><span class="header-icon">📈</span> Key Metrics</h5>
+            <span class="card-badge">Overview</span>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-item"><div class="stat-icon-wrap">👤</div><div class="number">{{ total_patients }}</div><div class="label">Patients / Samples</div></div>
+            <div class="stat-item"><div class="stat-icon-wrap">📦</div><div class="number">{{ total_specimens }}</div><div class="label">Specimens / Packs</div></div>
+            <div class="stat-item"><div class="stat-icon-wrap">🧪</div><div class="number">{{ avg_specimens_per_patient }}</div><div class="label">Avg Specimens / Patient</div></div>
+            <div class="stat-item"><div class="stat-icon-wrap">📅</div><div class="number">{{ collection_days }}</div><div class="label">Collection Days</div></div>
+            <div class="stat-item"><div class="stat-icon-wrap">🏥</div><div class="number">{{ total_facilities }}</div><div class="label">Facilities</div></div>
+            <div class="stat-item"><div class="stat-icon-wrap">👨‍⚕️</div><div class="number">{{ total_doctors }}</div><div class="label">Doctors</div></div>
+        </div>
+    </div>
+
+    <!-- 3. Specimen Breakdown -->
+    {% if type_summary %}
+    <div class="report-card">
+        <div class="card-header-custom">
+            <h5><span class="header-icon">🧪</span> Specimen Breakdown</h5>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <span class="card-badge">{{ type_summary|length }} types</span>
+                <button class="toggle-details-btn no-print" onclick="toggleTableSection('specimenTable', this)">👁️ Toggle</button>
+            </div>
+        </div>
+        <div id="specimenTable" style="display:none;">
+            <div class="table-responsive">
+                <table class="table table-striped table-specimen">
+                    <thead><tr><th>Specimen Type</th><th class="text-end">Quantity</th><th>Share of Total</th></tr></thead>
+                    <tbody>
+                        {% for stype, count in type_summary.items() %}
+                        {% set pct = (count / total_specimens * 100) if total_specimens > 0 else 0 %}
+                        {% set lower = stype|lower %}
+                        {% set dot_class = 'dot-blood' if 'blood' in lower else 'dot-serum' if 'serum' in lower else 'dot-urine' if 'urine' in lower else 'dot-swab' if 'swab' in lower else 'dot-plasma' if 'plasma' in lower else 'dot-stool' if 'stool' in lower else 'dot-other' %}
+                        {% set fill_class = 'fill-blood' if 'blood' in lower else 'fill-serum' if 'serum' in lower else 'fill-urine' if 'urine' in lower else 'fill-swab' if 'swab' in lower else 'fill-plasma' if 'plasma' in lower else 'fill-stool' if 'stool' in lower else 'fill-other' %}
+                        <tr>
+                            <td><div class="specimen-row"><span class="specimen-dot {{ dot_class }}"></span><span class="specimen-name">{{ stype }}</span></div></td>
+                            <td class="text-end"><span class="specimen-count"><strong>{{ count }}</strong></span></td>
+                            <td><div class="pct-cell"><div class="pct-track"><div class="pct-fill {{ fill_class }}" style="width: {{ pct if pct < 100 else 100 }}%;"></div></div><span class="pct-label">{{ "%.1f"|format(pct) }}%</span></div></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot><tr><td><strong>Total</strong></td><td class="text-end"><strong>{{ total_specimens }}</strong></td><td><strong>100%</strong></td></tr></tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 4. Collection by Facility -->
+    {% if location_summary %}
+    <div class="report-card">
+        <div class="card-header-custom">
+            <h5><span class="header-icon">🏥</span> Collection by Facility</h5>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <span class="card-badge">{{ location_summary|length }} facilities</span>
+                <button class="toggle-details-btn no-print" onclick="toggleTableSection('facilityTable', this)">👁️ Toggle</button>
+            </div>
+        </div>
+        <div id="facilityTable" style="display:none;">
+            <div class="table-responsive">
+                <table class="table table-striped table-facility">
+                    <thead><tr><th>Facility</th><th class="text-end">Patients</th><th class="text-end">Specimens</th><th class="text-end">Avg / Patient</th></tr></thead>
+                    <tbody>
+                        {% for loc, data in location_summary.items() %}
+                        {% set avg = (data.specimens / data.patients) if data.patients > 0 else 0 %}
+                        <tr>
+                            <td><div class="facility-row"><span class="facility-avatar">{{ loc[:2]|upper }}</span><span class="facility-name">{{ loc }}</span></div></td>
+                            <td class="text-end"><span class="stat-chip chip-patients">{{ data.patients }}</span></td>
+                            <td class="text-end"><span class="stat-chip chip-specimens">{{ data.specimens }}</span></td>
+                            <td class="text-end"><span class="avg-badge">{{ "%.1f"|format(avg) }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot><tr><td><strong>Total</strong></td><td class="text-end"><strong>{{ total_patients }}</strong></td><td class="text-end"><strong>{{ total_specimens }}</strong></td><td class="text-end"><strong>{{ avg_specimens_per_patient }}</strong></td></tr></tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 5. Daily Collection Summary -->
+    {% if daily_summary %}
+    <div class="report-card">
+        <div class="card-header-custom">
+            <h5><span class="header-icon">📅</span> Daily Collection Summary</h5>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <span class="card-badge">{{ daily_summary|length }} days</span>
+                <button class="toggle-details-btn no-print" onclick="toggleTableSection('dailyTable', this)">👁️ Toggle</button>
+            </div>
+        </div>
+        <div id="dailyTable" style="display:none;">
+            <div class="table-responsive">
+                <table class="table table-striped table-daily">
+                    <thead><tr><th>Date</th><th class="text-end">Patients</th><th class="text-end">Specimens</th><th class="text-end">Avg / Patient</th><th class="text-end">Trend</th></tr></thead>
+                    <tbody>
+                        {% for day in daily_summary %}
+                        {% set avg_float = day.avg|float %}
+                        {% set trend_class = 'trend-up' if avg_float > 2.0 else 'trend-stable' if avg_float > 1.0 else 'trend-down' %}
+                        {% set trend_icon = 'fa-arrow-trend-up' if avg_float > 2.0 else 'fa-minus' if avg_float > 1.0 else 'fa-arrow-trend-down' %}
+                        {% set trend_text = 'High' if avg_float > 2.0 else 'Steady' if avg_float > 1.0 else 'Low' %}
+                        <tr>
+                            <td><span class="date-badge"><i class="fas fa-calendar-day"></i>{{ day.date }}</span></td>
+                            <td class="text-end">{{ day.patients }}</td>
+                            <td class="text-end"><span class="badge badge-success">{{ day.specimens }}</span></td>
+                            <td class="text-end"><span class="badge badge-teal">{{ day.avg }}</span></td>
+                            <td class="text-end"><span class="trend-pill {{ trend_class }}"><i class="fas {{ trend_icon }}"></i>{{ trend_text }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot><tr><td><strong>Total</strong></td><td class="text-end"><strong>{{ total_patients }}</strong></td><td class="text-end"><strong>{{ total_specimens }}</strong></td><td class="text-end"><strong>{{ avg_specimens_per_patient }}</strong></td><td class="text-end">—</td></tr></tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 6. Collector Performance (Admin only) -->
+    {% if is_admin and collector_performance %}
+    <div class="report-card">
+        <div class="card-header-custom">
+            <h5><span class="header-icon">👨‍⚕️</span> Collector Performance</h5>
+            <span class="card-badge">Team Overview</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead><tr><th>Collector</th><th class="text-end">Patients</th><th class="text-end">Specimens</th><th class="text-end">Days</th><th class="text-end">Avg / Day</th></tr></thead>
+                <tbody>
+                    {% for c in collector_performance %}
+                    {% set avg_day = (c.patients / c.days) if c.days > 0 else 0 %}
+                    <tr><td><span class="badge badge-primary">{{ c.full_name }}</span></td><td class="text-end">{{ c.patients }}</td><td class="text-end">{{ c.specimens }}</td><td class="text-end">{{ c.days }}</td><td class="text-end">{{ "%.1f"|format(avg_day) }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 7. Collection Time Information -->
+    <div class="report-card">
+        <div class="card-header-custom">
+            <h5><span class="header-icon">⏱️</span> Collection Time</h5>
+            <span class="card-badge">Efficiency</span>
+        </div>
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px,1fr));">
+            <div class="stat-item"><div class="stat-icon-wrap">⏳</div><div class="number">{{ avg_duration_display }}</div><div class="label">Avg Call → Receive</div></div>
+        </div>
+    </div>
+
+    <!-- 8. Notes / Exceptions -->
+    {% if notes_records %}
+    <div class="report-card">
+        <div class="card-header-custom">
+            <h5><span class="header-icon">⚠️</span> Exceptions &amp; Remarks</h5>
+            <span class="card-badge">{{ notes_records|length }} notes</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead><tr><th>Date</th><th>Facility</th><th>Doctor</th><th>Note</th></tr></thead>
+                <tbody>
+                    {% for r in notes_records %}
+                    <tr><td><span class="badge badge-secondary">{{ r.date.strftime('%Y-%m-%d') }}</span></td><td>{{ r.location or '-' }}</td><td>{{ r.doctor or '-' }}</td><td><span class="badge badge-warning">{{ r.notes }}</span></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 9. Detailed Records -->
+    <div class="report-card">
+        <div class="card-header-custom">
+            <h5><span class="header-icon">📋</span> Detailed Records</h5>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <span class="card-badge">{{ records|length }} entries</span>
+                <button class="toggle-details-btn no-print" onclick="toggleDetails()">👁️ Toggle</button>
+            </div>
+        </div>
+        <div id="detailsTable" style="display:none;">
+            <div class="table-responsive">
+                <table class="table table-striped table-sm" style="min-width: 1400px;">
+                    <thead><tr><th>#</th><th>Date</th><th>Call Time</th><th>Arrived Time</th><th>Duration</th><th>Location</th><th>Doctor</th><th class="text-end">Patients</th><th class="text-end">Specimens</th><th class="text-end">Moto</th><th class="text-end">Far</th><th class="text-end">Total</th><th>Types</th><th>Notes</th></tr></thead>
+                    <tbody>
+                        {% for r in records %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td><span class="badge badge-secondary">{{ r.date.strftime('%Y-%m-%d') }}</span></td>
+                            <td>{{ r.call_time or '-' }}</td>
+                            <td>{{ r.arrived_time or '-' }}</td>
+                            <td>{% if r.duration %}<span class="badge-dur">{{ r.duration }}</span>{% else %}-{% endif %}</td>
+                            <td>{{ r.location or '-' }}</td>
+                            <td>{{ r.doctor or '-' }}</td>
+                            <td class="text-end">{{ r.patient_count }}</td>
+                            <td class="text-end"><span class="badge-specimen">{{ r.total_sampling }}</span></td>
+                            <td class="text-end">{{ r.moto_fee or 0 }}</td>
+                            <td class="text-end">{{ r.far_away_fee or 0 }}</td>
+                            <td class="text-end"><span class="badge-fees">{{ (r.moto_fee or 0) + (r.far_away_fee or 0) }}</span></td>
+                            <td>
+                                {% if r.sample_types_json %}
+                                    {% set display = get_sample_types_display(r.sample_types_json) %}
+                                    {% for part in display.split(', ') %}
+                                        {% set name = part.split(' ')[-1] if part else 'Other' %}
+                                        {% set lower = name|lower %}
+                                        <span class="specimen-pill {% if 'blood' in lower %}pill-blood {% elif 'serum' in lower %}pill-serum {% elif 'urine' in lower %}pill-urine {% elif 'swab' in lower %}pill-swab {% elif 'plasma' in lower %}pill-plasma {% elif 'stool' in lower %}pill-stool {% else %}pill-other{% endif %}">{{ name }}</span>
+                                    {% endfor %}
+                                {% else %}<span class="text-muted">-</span>{% endif %}
+                            </td>
+                            <td class="text-truncate" style="max-width: 150px;" title="{{ r.notes or '' }}">{{ r.notes[:30] if r.notes else '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="8" class="text-end"><strong>TOTAL</strong></td>
+                            <td class="text-end"><strong>{{ total_specimens }}</strong></td>
+                            <td class="text-end"><strong>{{ total_moto_fee }}</strong></td>
+                            <td class="text-end"><strong>{{ total_far_away_fee }}</strong></td>
+                            <td class="text-end"><strong>{{ total_fees }}</strong></td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        {% if not records %}
+        <div class="empty-state"><span class="empty-icon">🧪</span><p>No records found for this period.</p></div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ─── FEE DETAIL MODAL ─── -->
+<div id="feeModalOverlay" class="no-print" onclick="closeFeeModalOutside(event)">
+    <div id="feeModal" onclick="event.stopPropagation();">
+        <div class="modal-header-custom">
+            <div class="modal-header-left">
+                <span class="modal-header-icon">💰</span>
+                <div>
+                    <h5>Fee Details</h5>
+                    <span class="modal-header-sub" id="feeModalHeaderSub">Loading...</span>
+                </div>
+            </div>
+            <button class="modal-close-btn" onclick="closeFeeModal()" aria-label="Close modal">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="fee-modal-body">
+            <div class="fee-tabs">
+                <button class="fee-tab active" data-fee="moto" onclick="switchFeeTab('moto')">
+                    <span class="tab-icon">🛵</span> Moto Fee
+                </button>
+                <button class="fee-tab" data-fee="far" onclick="switchFeeTab('far')">
+                    <span class="tab-icon">🚗</span> Far Away Fee
+                </button>
+            </div>
+            <div id="feePrintContent"></div>
+        </div>
+        <div class="fee-modal-footer">
+            <button class="btn btn-primary-custom" style="margin-right: 8px; background: var(--primary); color: white; border: none; padding: 8px 20px; border-radius: 8px; font-weight: 700; cursor: pointer;" onclick="printFeeDetail()">🖨️ Print</button>
+            <button class="modal-footer-close" onclick="closeFeeModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<div id="printContainer" style="display:none;"></div>
+
+<script>
+    const recordsData = [
+        {% for r in records %}
+        {
+            id: {{ r.id }},
+            date: '{{ r.date.strftime("%Y-%m-%d") }}',
+            location: '{{ r.location or "-" }}',
+            moto_fee: {{ r.moto_fee or 0 }},
+            far_away_fee: {{ r.far_away_fee or 0 }},
+            total_sampling: {{ r.total_sampling }},
+            patient_count: {{ r.patient_count if r.patient_count is not none else 1 }},
+            notes: '{{ r.notes or "-" }}',
+            doctor: '{{ r.doctor or "-" }}',
+            call_time: '{{ r.call_time or "-" }}',
+            arrived_time: '{{ r.arrived_time or "-" }}',
+            member_username: '{{ r.member.username if r.member else "" }}'
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    const isAdminUser = {{ 'true' if is_admin else 'false' }};
+    const currentMemberUsername = '{{ member.username if member else "" }}';
+    const currentCollectorFilter = '{{ filter_collector }}';
+    const memberName = '{{ member.full_name }}';
+    const generatedTime = '{{ now.strftime("%Y-%m-%d %H:%M:%S") }}';
+
+    let activeFeeTab = 'moto';
+
+    function getFilteredRecords() {
+        if (!isAdminUser) return recordsData.filter(r => r.member_username === currentMemberUsername);
+        if (currentCollectorFilter) return recordsData.filter(r => r.member_username === currentCollectorFilter);
+        return recordsData;
+    }
+
+    function getDisplayName() {
+        if (!isAdminUser) return currentMemberUsername;
+        if (currentCollectorFilter) return currentCollectorFilter;
+        return 'All Collectors';
+    }
+
+    function renderFeeTable(type) {
+        const container = document.getElementById('feePrintContent');
+        const feeField = type === 'moto' ? 'moto_fee' : 'far_away_fee';
+        const feeLabel = type === 'moto' ? 'Moto Fee' : 'Far Away Fee';
+        const feeEmoji = type === 'moto' ? '🛵' : '🚗';
+
+        let filtered = getFilteredRecords().filter(r => r[feeField] > 0);
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="empty-state"><span class="empty-icon">📭</span><p>No records with ${feeLabel} &gt; 0.</p></div>`;
+            return;
+        }
+
+        const groups = {};
+        filtered.forEach(r => {
+            const key = r.date + '|' + r.location;
+            if (!groups[key]) groups[key] = { date: r.date, location: r.location, count: 0, totalFee: 0 };
+            groups[key].count += 1;
+            groups[key].totalFee += r[feeField];
+        });
+
+        const groupArray = Object.values(groups).sort((a, b) => a.date.localeCompare(b.date));
+
+        let rows = '';
+        let grandTotal = 0;
+        groupArray.forEach((g, i) => {
+            grandTotal += g.totalFee;
+            rows += `<tr><td>${i + 1}</td><td><span class="badge badge-secondary">${g.date}</span></td><td><strong>${g.location}</strong></td><td>${g.count}</td><td><span class="badge badge-teal">${g.totalFee}</span></td></tr>`;
+        });
+
+        container.innerHTML = `
+            <div class="print-time">Generated: ${generatedTime}</div>
+            <div class="cammed-header">
+                <span class="cm">C</span><span class="red-a">A</span><span class="cm">MMED</span>
+                <span class="lab">LAB</span>
+            </div>
+            <div class="cammed-sub">Leading Diagnostics</div>
+            <div class="member-header">👤 ${getDisplayName()}</div>
+            <div style="margin-bottom:12px;font-weight:600;color:var(--primary);font-size:0.95rem;text-align:center;">
+                ${feeEmoji} ${feeLabel} Summary
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped fee-detail-table">
+                    <thead><tr><th>No.</th><th>Date</th><th>Location</th><th>Times</th><th>${feeLabel}</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                    <tfoot><tr class="fee-total-row"><td colspan="4" class="text-end"><strong>TOTAL ${feeLabel}</strong></td><td><span class="badge badge-primary">${grandTotal}</span></td></tr></tfoot>
+                </table>
+            </div>
+            <div class="signature-footer">
+                <div class="signature-block">
+                    <span class="signature-label">Prepared By</span>
+                    <div class="signature-line"></div>
+                    <p class="signature-name">{{ current_user.full_name if current_user else '____________________' }}</p>
+                    <p class="signature-role">Signature &amp; Date</p>
+                </div>
+                <div class="signature-block">
+                    <span class="signature-label">Verified By</span>
+                    <div class="signature-line"></div>
+                    <p class="signature-name">____________________</p>
+                    <p class="signature-role">Signature &amp; Date</p>
+                </div>
+                <div class="signature-block">
+                    <span class="signature-label">Received By</span>
+                    <div class="signature-line"></div>
+                    <p class="signature-name">____________________</p>
+                    <p class="signature-role">Signature &amp; Date</p>
+                </div>
+            </div>
+        `;
+    }
+
+    function switchFeeTab(type) {
+        activeFeeTab = type;
+        document.querySelectorAll('.fee-tab').forEach(tab => tab.classList.toggle('active', tab.dataset.fee === type));
+        renderFeeTable(type);
+    }
+
+    function printFeeDetail() {
+        renderFeeTable(activeFeeTab);
+        const printContent = document.getElementById('feePrintContent').innerHTML;
+        const displayName = getDisplayName();
+        const win = window.open('', '_blank', 'width=1000,height=800,scrollbars=yes');
+        if (!win) { alert('Please allow popups for this site.'); return; }
+        win.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Fee Detail - ${displayName}</title>
+                <style>
+                    body { font-family: 'Inter', 'Khmer OS Battambang', 'Battambang', system-ui, sans-serif; padding: 30px 40px; background: #fff; color: #1a3a5c; }
+                    .table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+                    .table th, .table td { padding: 8px 10px; border: 1px solid #dce2ea; text-align: left; }
+                    .table th { background: #f1f6fc; font-weight: 700; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.5px; }
+                    .table-striped tbody tr:nth-of-type(odd) { background: #fafcff; }
+                    .table tfoot td { background: #f1f6fc; font-weight: 700; }
+                    .text-end { text-align: right; }
+                    .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; }
+                    .badge-secondary { background: #edf1f5; color: #4a5a6e; }
+                    .badge-teal { background: #d4f5f0; color: #007a6b; }
+                    .badge-primary { background: #1a3a5c; color: #fff; }
+                    .cammed-header { text-align: center; font-family: 'Montserrat', system-ui, sans-serif; font-weight: 900; font-size: 2rem; letter-spacing: -0.5px; margin-bottom: 2px; }
+                    .cammed-header .cm { color: #1a3a5c; }
+                    .cammed-header .red-a { color: #c0392b; }
+                    .cammed-header .lab { color: #1a3a5c; font-weight: 700; }
+                    .cammed-sub { text-align: center; font-size: 0.7rem; color: #8a9aa8; letter-spacing: 1.5px; margin-top: -2px; margin-bottom: 16px; text-transform: uppercase; }
+                    .member-header { text-align: center; font-weight: 700; font-size: 1.1rem; margin: 10px 0 14px; background: #e8f0fe; padding: 8px 16px; border-radius: 8px; display: inline-block; width: auto; margin-left: auto; margin-right: auto; }
+                    .print-time { text-align: right; font-size: 0.7rem; color: #8a9aa8; margin-bottom: 10px; }
+                    .signature-footer { display: flex; justify-content: space-between; margin-top: 50px; padding-top: 20px; font-size: 0.85rem; flex-wrap: wrap; gap: 20px; }
+                    .signature-block { flex: 1; min-width: 150px; text-align: center; }
+                    .signature-label { font-weight: 700; color: #1a3a5c; font-size: 0.8rem; letter-spacing: 0.3px; text-transform: uppercase; margin-bottom: 10px; display: block; }
+                    .signature-line { width: 90%; margin: 0 auto; border-bottom: 1.5px solid #1a3a5c; height: 35px; }
+                    .signature-name { font-weight: 700; color: #1a3a5c; font-size: 0.85rem; margin: 0; padding-top: 4px; }
+                    .signature-role { font-weight: 500; color: #8a9aa8; font-size: 0.7rem; margin: 0; }
+                    .fee-total-row td { background: #f1f6fc !important; font-weight: 700; }
+                    .table-responsive { overflow-x: auto; margin-top: 6px; }
+                    @media print { body { padding: 10px; } }
+                </style>
+            </head>
+            <body>${printContent}
+                <script>window.onload = function() { window.print(); };<\/script>
+            </body>
+            </html>
+        `);
+        win.document.close();
+    }
+
+    function openFeeModal() {
+        document.getElementById('feeModalOverlay').classList.add('active');
+        const headerSub = document.getElementById('feeModalHeaderSub');
+        headerSub.textContent = getDisplayName();
+        switchFeeTab('moto');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeFeeModal() {
+        document.getElementById('feeModalOverlay').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function closeFeeModalOutside(event) {
+        if (event.target === event.currentTarget) closeFeeModal();
+    }
+
+    function applyFilters() {
+        const from = document.getElementById('from_date').value;
+        const to = document.getElementById('to_date').value;
+        const collector = document.getElementById('collector_filter')?.value || '';
+        const facility = document.getElementById('facility_filter')?.value || '';
+        const sampleType = document.getElementById('sample_type_filter')?.value || '';
+        let url = '/report?';
+        if (from && to) {
+            if (from > to) { alert('From date must be before To date.'); return; }
+            url += `from_date=${from}&to_date=${to}`;
+        } else {
+            url += `type=monthly&value={{ today.strftime('%Y-%m') }}`;
+        }
+        if (collector) url += `&collector=${collector}`;
+        if (facility) url += `&facility=${facility}`;
+        if (sampleType) url += `&sample_type=${sampleType}`;
+        window.location = url;
+    }
+
+    function toggleTableSection(sectionId, btnEl) {
+        const section = document.getElementById(sectionId);
+        if (!section) return;
+        if (section.style.display === 'none') { section.style.display = 'block'; btnEl.innerHTML = '🙈 Hide'; }
+        else { section.style.display = 'none'; btnEl.innerHTML = '👁️ Toggle'; }
+    }
+
+    function toggleDetails() {
+        const table = document.getElementById('detailsTable');
+        const btn = document.querySelector('.toggle-details-btn');
+        if (table.style.display === 'none') { table.style.display = 'block'; btn.innerHTML = '🙈 Hide'; }
+        else { table.style.display = 'none'; btn.innerHTML = '👁️ Toggle'; }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const fromInput = document.getElementById('from_date');
+        const toInput = document.getElementById('to_date');
+        {% if from_date %} fromInput.value = '{{ from_date }}'; {% endif %}
+        {% if to_date %} toInput.value = '{{ to_date }}'; {% endif %}
+        {% if is_admin %}
+        const collectorSelect = document.getElementById('collector_filter');
+        if (collectorSelect) { {% if filter_collector %} collectorSelect.value = '{{ filter_collector }}'; {% endif %} }
+        {% endif %}
+        const facilitySelect = document.getElementById('facility_filter');
+        if (facilitySelect) { {% if filter_facility %} facilitySelect.value = '{{ filter_facility }}'; {% endif %} }
+        const sampleSelect = document.getElementById('sample_type_filter');
+        if (sampleSelect) { {% if filter_sample_type %} sampleSelect.value = '{{ filter_sample_type }}'; {% endif %} }
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const overlay = document.getElementById('feeModalOverlay');
+                if (overlay.classList.contains('active')) closeFeeModal();
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,1392 @@
+{% extends "base.html" %}
+{% block title %}{{ member.full_name }} - Details{% endblock %}
+{% block content %}
+
+<style>
+    /* ═══════════════════════════════════════════════════════════
+       FONTS - INTER (English) + KH MER OS BATTAMBANG (Khmer Fallback)
+       ═══════════════════════════════════════════════════════════ */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Battambang:wght@400;700&display=swap');
+
+    /* ============================================================
+       ROOT – consistent with admin panel
+       ============================================================ */
+    :root {
+        --cml-blue: #2b5d8d;
+        --cml-dark-blue: #1a3f5f;
+        --cml-light-blue: #eef4fa;
+        --cml-glow: rgba(43, 93, 141, 0.15);
+        --page-bg: #f4f7fc;
+        --card-bg: #ffffff;
+        --text-primary: #0b1a2b;
+        --text-secondary: #2d3f53;
+        --text-muted: #6b7a8f;
+        --border-light: #e9edf4;
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+        --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 16px 56px rgba(0, 0, 0, 0.08);
+        --shadow-xl: 0 24px 80px rgba(0, 0, 0, 0.12);
+        --radius-sm: 8px;
+        --radius-md: 14px;
+        --radius-lg: 20px;
+        --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        --khmer-font: 'Inter', 'Khmer OS Battambang', 'Battambang', 'Kantumruy Pro', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+        background: var(--page-bg);
+        font-family: var(--khmer-font); /* Inter for English, Battambang for Khmer */
+        color: var(--text-primary);
+    }
+
+    /* Ensure all elements inherit the font */
+    h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, select, textarea, th, td {
+        font-family: inherit;
+    }
+
+    /* ============================================================
+       EXPANDED CONTAINER - FULL WIDTH
+       ============================================================ */
+    .container-expanded {
+        width: 100%;
+        max-width: 100%;
+        padding-right: 20px;
+        padding-left: 20px;
+        margin-right: auto;
+        margin-left: auto;
+    }
+
+    /* ============================================================
+       CUSTOM SCROLLBAR - ONLY VISIBLE WHEN SCROLLING
+       ============================================================ */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 0;
+        margin: 0;
+        position: relative;
+    }
+
+    .table-responsive::-webkit-scrollbar {
+        height: 10px;
+        background: transparent;
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 6px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: var(--cml-blue);
+        border-radius: 6px;
+        border: 2px solid #e9edf4;
+        transition: background 0.2s ease;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: var(--cml-dark-blue);
+        cursor: pointer;
+    }
+
+    .table-responsive:hover::-webkit-scrollbar-thumb,
+    .table-responsive:focus::-webkit-scrollbar-thumb,
+    .table-responsive:active::-webkit-scrollbar-thumb {
+        opacity: 1;
+    }
+
+    .table-responsive {
+        scrollbar-width: thin;
+        scrollbar-color: transparent transparent;
+        transition: scrollbar-color 0.3s ease;
+    }
+
+    .table-responsive:hover {
+        scrollbar-color: var(--cml-blue) transparent;
+    }
+
+    .table-responsive {
+        -ms-overflow-style: -ms-autohiding-scrollbar;
+    }
+
+    /* ============================================================
+       BACK BUTTON
+       ============================================================ */
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 18px;
+        border-radius: 40px;
+        background: white;
+        color: var(--cml-blue);
+        font-weight: 600;
+        font-size: 13px;
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition);
+        text-decoration: none;
+        border: 1px solid var(--border-light);
+        margin-bottom: 24px;
+    }
+    .back-link:hover {
+        background: var(--cml-blue);
+        color: white;
+        border-color: var(--cml-blue);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    /* ============================================================
+       PROFILE CARD – elevated, glassy
+       ============================================================ */
+    .profile-card {
+        background: var(--card-bg);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        padding: 28px 32px;
+        margin-bottom: 30px;
+        border: 1px solid rgba(255,255,255,0.5);
+        transition: box-shadow var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .profile-card:hover {
+        box-shadow: var(--shadow-lg);
+    }
+    .profile-card .profile-bg-accent {
+        position: absolute;
+        right: -60px;
+        bottom: -80px;
+        width: 240px;
+        height: 240px;
+        border-radius: 50%;
+        background: var(--cml-blue);
+        opacity: 0.04;
+        pointer-events: none;
+    }
+
+    .profile-row {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 2;
+    }
+
+    .profile-avatar {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--cml-blue);
+        background: var(--cml-light-blue);
+        flex-shrink: 0;
+        box-shadow: 0 6px 20px rgba(43,93,141,0.20);
+        transition: border-color var(--transition);
+    }
+    .profile-avatar-placeholder {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--cml-blue), var(--cml-dark-blue));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 36px;
+        font-weight: 700;
+        flex-shrink: 0;
+        box-shadow: 0 6px 20px rgba(43,93,141,0.25);
+    }
+
+    .profile-info {
+        flex: 1;
+        min-width: 240px;
+    }
+    .profile-info .profile-name {
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin: 0 0 4px 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .profile-info .profile-username {
+        color: var(--text-muted);
+        font-size: 14px;
+        margin-bottom: 6px;
+    }
+    .profile-info .profile-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px 28px;
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-top: 6px;
+    }
+    .profile-info .profile-details span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .profile-info .profile-details .icon {
+        opacity: 0.6;
+        font-size: 16px;
+    }
+    .profile-info .profile-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px 30px;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border-light);
+    }
+    .profile-info .profile-stats small {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+    .profile-info .profile-stats strong {
+        color: var(--cml-blue);
+        font-weight: 700;
+    }
+
+    .tag {
+        display: inline-block;
+        padding: 2px 12px;
+        border-radius: 40px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+    }
+    .tag-you {
+        background: var(--cml-blue);
+        color: white;
+    }
+    .tag-admin {
+        background: #e74c3c;
+        color: white;
+    }
+    .tag-inactive {
+        background: #6c757d;
+        color: white;
+    }
+    .tag-online {
+        background: #10b981;
+        color: white;
+    }
+    .tag-offline {
+        background: #d1d5db;
+        color: #4a5568;
+    }
+
+    .online-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 4px;
+        vertical-align: middle;
+    }
+    .online-dot.online { background: #10b981; box-shadow: 0 0 8px rgba(16,185,129,0.5); }
+    .online-dot.offline { background: #d1d5db; }
+
+    /* ============================================================
+       STATISTICS CARDS – glassy, elevated
+       ============================================================ */
+    .stat-card-mini {
+        background: var(--card-bg);
+        border-radius: var(--radius-md);
+        padding: 20px 18px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid rgba(255,255,255,0.5);
+        transition: transform var(--transition), box-shadow var(--transition);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-card-mini:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+    .stat-card-mini .stat-number {
+        font-size: 30px;
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -0.5px;
+        margin-bottom: 2px;
+    }
+    .stat-card-mini .stat-label {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted);
+    }
+    .stat-card-mini .stat-icon {
+        font-size: 22px;
+        margin-bottom: 6px;
+        opacity: 0.5;
+    }
+    .stat-card-mini .stat-bg-blob {
+        position: absolute;
+        right: -20px;
+        bottom: -30px;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        opacity: 0.05;
+        pointer-events: none;
+    }
+    .stat-card-mini.color-blue .stat-number { color: var(--cml-blue); }
+    .stat-card-mini.color-blue .stat-bg-blob { background: var(--cml-blue); }
+    .stat-card-mini.color-green .stat-number { color: #0b7a4a; }
+    .stat-card-mini.color-green .stat-bg-blob { background: #0b7a4a; }
+    .stat-card-mini.color-amber .stat-number { color: #b45f1a; }
+    .stat-card-mini.color-amber .stat-bg-blob { background: #b45f1a; }
+    .stat-card-mini.color-purple .stat-number { color: #6d3b9b; }
+    .stat-card-mini.color-purple .stat-bg-blob { background: #6d3b9b; }
+    .stat-card-mini.color-red .stat-number { color: #b33a34; }
+    .stat-card-mini.color-red .stat-bg-blob { background: #b33a34; }
+
+    /* ============================================================
+       FEE SUMMARY – cards
+       ============================================================ */
+    .fee-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 14px;
+        margin-bottom: 24px;
+    }
+    .fee-summary .fee-item {
+        background: var(--card-bg);
+        border-radius: var(--radius-md);
+        padding: 16px 12px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-light);
+        text-align: center;
+        transition: all var(--transition);
+    }
+    .fee-summary .fee-item:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+    .fee-summary .fee-item .fee-value {
+        font-size: 24px;
+        font-weight: 800;
+        color: #16a085;
+        display: block;
+        line-height: 1.2;
+    }
+    .fee-summary .fee-item .fee-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: var(--text-muted);
+        font-weight: 600;
+        margin-top: 2px;
+    }
+    .fee-summary .fee-item .fee-icon {
+        font-size: 20px;
+        display: block;
+        margin-bottom: 4px;
+        opacity: 0.5;
+    }
+
+    /* ============================================================
+       SUMMARY GRIDS (Clinic & Sample Types) - ULTRA MODERN LOOK
+       ============================================================ */
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 16px;
+        padding: 8px 0 4px;
+    }
+
+    .summary-grid .summary-item {
+        position: relative;
+        text-align: center;
+        padding: 22px 16px;
+        border-radius: 16px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: default;
+        overflow: hidden;
+    }
+
+    /* Subtle gradient background layer */
+    .summary-grid .summary-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--cml-blue), #6c8fc7);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    /* Soft glowing blob on hover */
+    .summary-grid .summary-item::after {
+        content: '';
+        position: absolute;
+        top: -20px;
+        right: -20px;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--cml-blue);
+        opacity: 0;
+        transition: all 0.3s;
+        z-index: 0;
+    }
+
+    .summary-grid .summary-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(43, 93, 141, 0.15);
+        border-color: transparent;
+    }
+
+    .summary-grid .summary-item:hover::before {
+        opacity: 1;
+    }
+
+    .summary-grid .summary-item:hover::after {
+        opacity: 0.08;
+        transform: scale(1.5);
+    }
+
+    /* Ensure numbers are crisp */
+    .summary-grid .summary-item h5 {
+        position: relative;
+        z-index: 1;
+        margin: 0 0 6px 0;
+        font-weight: 800;
+        font-size: 32px;
+        letter-spacing: -1px;
+        line-height: 1;
+        color: var(--cml-blue);
+    }
+
+    /* Gradient text for blue numbers */
+    .summary-grid .summary-item h5 {
+        background: linear-gradient(135deg, var(--cml-blue), #4a8dbd);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Green numbers */
+    .summary-grid .summary-item h5.green {
+        background: linear-gradient(135deg, #0b7a4a, #38a169);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .summary-grid .summary-item small {
+        position: relative;
+        z-index: 1;
+        display: block;
+        color: var(--text-muted);
+        font-size: 12px;
+        margin-top: 4px;
+        font-weight: 600;
+        line-height: 1.3;
+    }
+
+    /* ============================================================
+       CUSTOM CARD – for sections (EXPANDED)
+       ============================================================ */
+    .custom-card {
+        background: var(--card-bg);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid rgba(255,255,255,0.5);
+        overflow: hidden;
+        margin-bottom: 24px;
+        transition: box-shadow var(--transition);
+        width: 100%;
+    }
+    .custom-card:hover {
+        box-shadow: var(--shadow-md);
+    }
+    .custom-card .card-header {
+        padding: 16px 24px;
+        background: linear-gradient(135deg, #fafcff, #f2f7fe);
+        border-bottom: 1px solid var(--border-light);
+        font-weight: 700;
+        color: var(--cml-blue);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 15px;
+        letter-spacing: -0.2px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .custom-card .card-header .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .custom-card .card-header .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .custom-card .card-header .badge {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 4px 12px;
+        border-radius: 40px;
+    }
+    .custom-card .card-body {
+        padding: 20px 24px;
+    }
+
+    /* ============================================================
+       FILTER & TOGGLE BUTTONS (Clean Pill Style)
+       ============================================================ */
+    .btn-filter, .btn-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 0.4rem 1.2rem;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        background-color: #dbeafe;
+        color: #1e3a8a;
+        border: 1px solid #bfdbfe;
+        line-height: 1.1;
+        white-space: nowrap;
+    }
+
+    /* SVG Icons stay crisp in every state */
+    .btn-filter svg, .btn-toggle svg {
+        width: 16px;
+        height: 16px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        flex-shrink: 0;
+    }
+
+    .btn-filter:hover, .btn-toggle:hover {
+        background-color: #bfdbfe;
+        border-color: #93c5fd;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* ACTIVE STATE - same colors for both */
+    .btn-filter.active, .btn-toggle.active {
+        background-color: #1e3a8a;
+        border-color: #1e3a8a;
+        color: #ffffff;
+    }
+
+    /* Filter input row */
+    .filter-row {
+        display: none;
+        padding: 12px 20px;
+        background: #fafbfe;
+        border-bottom: 1px solid var(--border-light);
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .filter-row.show {
+        display: flex;
+    }
+    .filter-row .filter-input {
+        flex: 1;
+        min-width: 180px;
+        padding: 8px 14px;
+        border: 2px solid var(--border-light);
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        color: var(--text-primary);
+        background: #fff;
+        outline: none;
+        transition: all var(--transition);
+    }
+    .filter-row .filter-input:focus {
+        border-color: var(--cml-blue);
+        box-shadow: 0 0 0 3px var(--cml-glow);
+    }
+    .filter-row .filter-input::placeholder {
+        color: #b0bec5;
+    }
+    .filter-row .filter-select {
+        padding: 8px 14px;
+        border: 2px solid var(--border-light);
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        color: var(--text-primary);
+        background: #fff;
+        outline: none;
+        cursor: pointer;
+        transition: all var(--transition);
+        min-width: 120px;
+    }
+    .filter-row .filter-select:focus {
+        border-color: var(--cml-blue);
+        box-shadow: 0 0 0 3px var(--cml-glow);
+    }
+    .filter-row .filter-clear {
+        padding: 8px 16px;
+        border: 0;
+        border-radius: var(--radius-sm);
+        background: #ef4444;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition);
+    }
+    .filter-row .filter-clear:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+    }
+    .filter-row .filter-count {
+        font-size: 12px;
+        color: var(--text-muted);
+        padding: 4px 10px;
+        background: #e9edf4;
+        border-radius: 20px;
+        white-space: nowrap;
+    }
+    .filter-row .filter-count strong {
+        color: var(--cml-blue);
+    }
+
+    /* Toggle table body */
+    .table-body-wrapper.hidden {
+        display: none;
+    }
+
+    /* ============================================================
+       RECORDS TABLE – FULL WIDTH, RESPONSIVE
+       ============================================================ */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 0;
+        margin: 0;
+        position: relative;
+    }
+
+    .table-responsive::after {
+        content: '';
+        position: sticky;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 30px;
+        pointer-events: none;
+        background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.02));
+        z-index: 2;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .table-responsive.scrolled::after {
+        opacity: 1;
+    }
+
+    #recordsTable {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        min-width: 1200px;
+    }
+
+    #recordsTable thead th {
+        background: #f8fafd;
+        color: #5a6d82;
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid var(--border-light);
+        padding: 12px 14px;
+        white-space: nowrap;
+        vertical-align: middle;
+        text-align: left;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    #recordsTable thead th.text-center {
+        text-align: center;
+    }
+    #recordsTable thead th.text-end {
+        text-align: right;
+    }
+
+    /* Resizer handle */
+    #recordsTable thead th .resizer {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 8px;
+        height: 100%;
+        cursor: col-resize;
+        background: transparent;
+        z-index: 5;
+        transition: background 0.15s;
+    }
+    #recordsTable thead th .resizer:hover,
+    #recordsTable thead th .resizer.active {
+        background: var(--cml-blue);
+        opacity: 0.35;
+    }
+    #recordsTable thead th:last-child .resizer {
+        display: none;
+    }
+
+    /* Body cells */
+    #recordsTable tbody td {
+        padding: 11px 14px;
+        border-bottom: 1px solid #f0f3f8;
+        color: var(--text-secondary);
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    /* Notes column - allow wrapping */
+    #recordsTable tbody td:last-child {
+        white-space: normal;
+        word-break: break-word;
+        min-width: 100px;
+        max-width: 200px;
+    }
+
+    #recordsTable tbody tr:hover td {
+        background: #f6faff;
+    }
+    #recordsTable tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    /* Footer */
+    #recordsTable tfoot td {
+        background: #f0f4f8;
+        font-weight: 700;
+        padding: 10px 14px;
+        border-top: 2px solid var(--border-light);
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    #recordsTable tfoot td.text-end {
+        text-align: right;
+    }
+    #recordsTable tfoot td.text-center {
+        text-align: center;
+    }
+
+    .badge-dur {
+        background: #e8f4fd;
+        color: var(--cml-blue);
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    /* Column width classes */
+    .col-id { width: 4%; min-width: 40px; }
+    .col-date { width: 8%; min-width: 85px; }
+    .col-time { width: 6%; min-width: 55px; }
+    .col-dur { width: 5%; min-width: 50px; }
+    .col-clinic { width: 13%; min-width: 110px; }
+    .col-doctor { width: 8%; min-width: 70px; }
+    .col-number { width: 6%; min-width: 60px; text-align: center; }
+    .col-fee { width: 6%; min-width: 60px; text-align: center; }
+    .col-types { width: 8%; min-width: 80px; }
+    .col-notes { width: 10%; min-width: 100px; }
+
+    /* Hidden row for filtering */
+    .record-row.hidden-filter {
+        display: none;
+    }
+
+    /* ============================================================
+       RESPONSIVE BREAKPOINTS
+       ============================================================ */
+    @media (max-width: 1200px) {
+        #recordsTable { min-width: 1100px; }
+    }
+
+    @media (max-width: 992px) {
+        .profile-row { gap: 18px; }
+        .profile-avatar, .profile-avatar-placeholder { width: 72px; height: 72px; font-size: 30px; }
+        .profile-info .profile-name { font-size: 22px; }
+        #recordsTable { font-size: 12.5px; min-width: 1000px; }
+        #recordsTable thead th, #recordsTable tbody td { padding: 10px 12px; }
+        .filter-row { flex-direction: column; align-items: stretch; }
+        .filter-row .filter-input { min-width: auto; }
+        .filter-row .filter-select { min-width: auto; }
+        .filter-row .filter-count { text-align: center; }
+    }
+
+    @media (max-width: 768px) {
+        .profile-card { padding: 20px; }
+        .profile-row { flex-direction: column; align-items: center; text-align: center; }
+        .profile-info .profile-details { justify-content: center; }
+        .profile-info .profile-stats { justify-content: center; }
+        .profile-info .profile-name { justify-content: center; }
+        .stat-card-mini .stat-number { font-size: 24px; }
+        .custom-card .card-header { padding: 12px 16px; font-size: 13px; flex-direction: column; align-items: stretch; }
+        .custom-card .card-header .header-left { justify-content: center; }
+        .custom-card .card-header .header-actions { justify-content: center; }
+        .custom-card .card-body { padding: 14px 16px; }
+        #recordsTable { font-size: 12px; min-width: 850px; }
+        #recordsTable thead th, #recordsTable tbody td { padding: 8px 10px; }
+        .fee-summary { grid-template-columns: 1fr 1fr; }
+        .summary-grid { grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); gap: 12px; }
+        .table-responsive::-webkit-scrollbar { height: 8px; }
+        .container-expanded { padding-right: 12px; padding-left: 12px; }
+        .filter-row { padding: 10px 16px; }
+        .btn-filter, .btn-toggle { font-size: 12px; padding: 6px 14px; }
+    }
+
+    @media (max-width: 480px) {
+        .profile-avatar, .profile-avatar-placeholder { width: 60px; height: 60px; font-size: 24px; }
+        .profile-info .profile-name { font-size: 18px; }
+        .stat-card-mini .stat-number { font-size: 20px; }
+        .fee-summary { grid-template-columns: 1fr; }
+        .summary-grid { grid-template-columns: repeat(auto-fill, minmax(90px,1fr)); gap: 8px; }
+        #recordsTable { min-width: 720px; font-size: 11px; }
+        #recordsTable thead th, #recordsTable tbody td { padding: 6px 8px; }
+        .table-responsive::-webkit-scrollbar { height: 8px; }
+        .container-expanded { padding-right: 8px; padding-left: 8px; }
+        .custom-card .card-header .header-actions { flex-direction: column; width: 100%; }
+        .btn-filter, .btn-toggle { width: 100%; justify-content: center; }
+    }
+
+    @media print {
+        .no-print { display: none !important; }
+        body { background: white; }
+        .profile-card, .custom-card, .stat-card-mini { box-shadow: none !important; border: 1px solid #ddd; }
+        #recordsTable { min-width: auto; }
+        .filter-row { display: none !important; }
+    }
+</style>
+
+<!-- ============================================================
+     EXPANDED CONTAINER - FULL WIDTH
+     ============================================================ -->
+<div class="container-expanded mt-4 mb-5">
+    <!-- Back button -->
+    <a href="{{ url_for('members_list') }}" class="back-link no-print">
+        ← Back to Members
+    </a>
+
+    <!-- ============================================================
+         PROFILE CARD - FIXED PROFILE PICTURE
+         ============================================================ -->
+    <div class="profile-card">
+        <div class="profile-bg-accent"></div>
+        <div class="profile-row">
+            {% if member.profile_picture and member.profile_picture != 'default.png' %}
+                {% if member.profile_picture.startswith('http') %}
+                    <img src="{{ member.profile_picture }}?t={{ range(1, 100) | random }}" class="profile-avatar" alt="{{ member.full_name }}">
+                {% else %}
+                    <img src="{{ url_for('uploaded_file', filename=member.profile_picture) }}?t={{ range(1, 100) | random }}" class="profile-avatar" alt="{{ member.full_name }}">
+                {% endif %}
+            {% else %}
+                <div class="profile-avatar-placeholder">{{ member.full_name[:1] }}</div>
+            {% endif %}
+            <div class="profile-info">
+                <div class="profile-name">
+                    {{ member.full_name }}
+                    {% if member.id == session.user_id %}<span class="tag tag-you">You</span>{% endif %}
+                    {% if member.is_admin %}<span class="tag tag-admin">Admin</span>{% endif %}
+                    {% if not member.is_active %}<span class="tag tag-inactive">Inactive</span>{% endif %}
+                    {% if member.is_online %}
+                    <span class="tag tag-online"><span class="online-dot online"></span> Online</span>
+                    {% else %}
+                    <span class="tag tag-offline"><span class="online-dot offline"></span> Offline</span>
+                    {% endif %}
+                </div>
+                <div class="profile-username">@{{ member.username }}</div>
+                <div class="profile-details">
+                    <span><span class="icon">✉</span> {{ member.email or 'N/A' }}</span>
+                    <span><span class="icon">📞</span> {{ member.phone or 'N/A' }}</span>
+                    <span><span class="icon">📅</span> Joined: <strong>{{ member.created_at.strftime('%Y-%m-%d') if member.created_at else 'N/A' }}</strong></span>
+                    {% if not member.is_online and member.last_login %}
+                    <span><span class="icon">🕒</span> Last seen: <strong>{{ member.last_login.strftime('%Y-%m-%d %H:%M') }}</strong></span>
+                    {% endif %}
+                </div>
+                <div class="profile-stats">
+                    <small>📋 Records: <strong>{{ record_count }}</strong></small>
+                    <small>🧪 Samples: <strong>{{ total_patients }}</strong></small>
+                    <small>💵 Fees: <strong>{{ total_fees }}</strong></small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         STATISTICS CARDS (6 cards)
+         ============================================================ -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-2 col-4">
+            <div class="stat-card-mini color-blue">
+                <div class="stat-icon">📋</div>
+                <div class="stat-number">{{ record_count }}</div>
+                <div class="stat-label">Total Records</div>
+                <div class="stat-bg-blob"></div>
+            </div>
+        </div>
+        <div class="col-md-2 col-4">
+            <div class="stat-card-mini color-green">
+                <div class="stat-icon">🧪</div>
+                <div class="stat-number">{{ total_patients }}</div>
+                <div class="stat-label">Total Samples</div>
+                <div class="stat-bg-blob"></div>
+            </div>
+        </div>
+        <div class="col-md-2 col-4">
+            <div class="stat-card-mini color-amber">
+                <div class="stat-icon">🔬</div>
+                <div class="stat-number">{{ total_sampling }}</div>
+                <div class="stat-label">Total Specimens</div>
+                <div class="stat-bg-blob"></div>
+            </div>
+        </div>
+        <div class="col-md-2 col-4">
+            <div class="stat-card-mini color-purple">
+                <div class="stat-icon">📅</div>
+                <div class="stat-number" style="font-size:18px;">{{ first_record or '-' }}</div>
+                <div class="stat-label">First Record</div>
+                <div class="stat-bg-blob"></div>
+            </div>
+        </div>
+        <div class="col-md-2 col-4">
+            <div class="stat-card-mini color-red">
+                <div class="stat-icon">📅</div>
+                <div class="stat-number" style="font-size:18px;">{{ last_record or '-' }}</div>
+                <div class="stat-label">Last Record</div>
+                <div class="stat-bg-blob"></div>
+            </div>
+        </div>
+        <div class="col-md-2 col-4">
+            <div class="stat-card-mini color-green">
+                <div class="stat-icon">💵</div>
+                <div class="stat-number">{{ total_fees }}</div>
+                <div class="stat-label">Total Fees</div>
+                <div class="stat-bg-blob"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         FEE SUMMARY (if any fee data)
+         ============================================================ -->
+    {% if total_moto_fee or total_far_away_fee %}
+    <div class="fee-summary">
+        <div class="fee-item">
+            <span class="fee-icon">🛵</span>
+            <span class="fee-value">{{ total_moto_fee }}</span>
+            <span class="fee-label">Moto Fee</span>
+        </div>
+        <div class="fee-item">
+            <span class="fee-icon">🚗</span>
+            <span class="fee-value">{{ total_far_away_fee }}</span>
+            <span class="fee-label">Far Away Fee</span>
+        </div>
+        <div class="fee-item">
+            <span class="fee-icon">💰</span>
+            <span class="fee-value">{{ total_fees }}</span>
+            <span class="fee-label">Total Fee</span>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ============================================================
+         CLINIC / HOSPITAL SUMMARY
+         ============================================================ -->
+    {% if location_summary %}
+    <div class="custom-card">
+        <div class="card-header">
+            <span>🏥 Clinic / Hospital Summary</span>
+            <span class="badge bg-primary">{{ location_summary|length }} locations</span>
+        </div>
+        <div class="card-body">
+            <div class="summary-grid">
+                {% for loc, data in location_summary.items() %}
+                <div class="summary-item">
+                    <h5>{{ data.total }}</h5>
+                    <small>{{ loc }}</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ============================================================
+         SAMPLE TYPE SUMMARY
+         ============================================================ -->
+    {% if type_summary %}
+    <div class="custom-card">
+        <div class="card-header">
+            <span>🧪 Sample Type Summary</span>
+            <span class="badge bg-success">{{ type_summary|length }} types</span>
+        </div>
+        <div class="card-body">
+            <div class="summary-grid">
+                {% for stype, count in type_summary.items() %}
+                <div class="summary-item">
+                    <h5 class="green">{{ count }}</h5>
+                    <small>{{ stype }}</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ============================================================
+         RECORDS TABLE - WITH FILTER & TOGGLE
+         ============================================================ -->
+    <div class="custom-card">
+        <div class="card-header">
+            <div class="header-left">
+                <span>📝 Collection Records</span>
+                <span class="badge bg-info" id="recordCountBadge">{{ record_count }} records</span>
+            </div>
+            <div class="header-actions">
+                <button class="btn-filter" id="filterToggleBtn" onclick="toggleFilter()">
+                    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <span class="btn-text">Filter</span>
+                </button>
+                <button class="btn-toggle" id="tableToggleBtn" onclick="toggleTable()">
+                    <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <span class="btn-text">Hide</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter Row -->
+        <div class="filter-row" id="filterRow">
+            <input type="text" class="filter-input" id="filterInput" placeholder="Search records..." oninput="applyFilter()">
+            <select class="filter-select" id="filterColumn" onchange="applyFilter()">
+                <option value="all">All Columns</option>
+                <option value="date">Date</option>
+                <option value="clinic">Clinic</option>
+                <option value="doctor">Doctor</option>
+                <option value="types">Types</option>
+                <option value="notes">Notes</option>
+            </select>
+            <button class="filter-clear" onclick="clearFilter()">✕ Clear</button>
+            <span class="filter-count" id="filterCount">Showing <strong id="visibleRecords">0</strong> records</span>
+        </div>
+
+        <div class="table-body-wrapper" id="tableBodyWrapper">
+            <div class="card-body p-0">
+                {% if records %}
+                <div class="table-responsive" id="tableResponsive">
+                    <table class="table table-hover align-middle mb-0" id="recordsTable">
+                        <thead>
+                            <tr>
+                                <th class="col-id ps-3">#</th>
+                                <th class="col-date">Date</th>
+                                <th class="col-time">Call</th>
+                                <th class="col-time">Arrived</th>
+                                <th class="col-dur">Dur</th>
+                                <th class="col-clinic">Clinic / Hospital</th>
+                                <th class="col-doctor">Doctor</th>
+                                <th class="col-number text-center">Samples</th>
+                                <th class="col-number text-center">Specimens</th>
+                                <th class="col-fee text-center">Moto</th>
+                                <th class="col-fee text-center">Far</th>
+                                <th class="col-fee text-center">Total Fee</th>
+                                <th class="col-types">Types</th>
+                                <th class="col-notes">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsBody">
+                            {% for r in records %}
+                            <tr class="record-row" data-index="{{ loop.index }}">
+                                <td class="ps-3 fw-semibold">{{ loop.index }}</td>
+                                <td class="col-date-val">{{ r.date.strftime('%Y-%m-%d') }}</td>
+                                <td class="col-time-val">{{ r.call_time or '-' }}</td>
+                                <td class="col-time-val">{{ r.arrived_time or '-' }}</td>
+                                <td class="col-dur-val">{% if r.duration %}<span class="badge-dur">{{ r.duration }}</span>{% else %}-{% endif %}</td>
+                                <td class="col-clinic-val">{{ r.location or '-' }}</td>
+                                <td class="col-doctor-val">{{ r.doctor or '-' }}</td>
+                                <td class="col-number text-center"><span class="badge bg-secondary">{{ r.patient_count if r.patient_count is not none else 1 }}</span></td>
+                                <td class="col-number text-center"><span class="badge bg-success">{{ r.total_sampling }}</span></td>
+                                <td class="col-fee text-center">{{ r.moto_fee or 0 }}</td>
+                                <td class="col-fee text-center">{{ r.far_away_fee or 0 }}</td>
+                                <td class="col-fee text-center"><span class="badge bg-teal" style="color:black;">{{ (r.moto_fee or 0) + (r.far_away_fee or 0) }}</span></td>
+                                <td class="col-types-val">{{ get_sample_types_display(r.sample_types_json) }}</td>
+                                <td class="col-notes-val">{{ r.notes if r.notes else '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td class="col-id ps-3 fw-bold">TOTAL</td>
+                                <td class="col-date"></td>
+                                <td class="col-time"></td>
+                                <td class="col-time"></td>
+                                <td class="col-dur"></td>
+                                <td class="col-clinic"></td>
+                                <td class="col-doctor"></td>
+                                <td class="col-number text-center"><span class="badge bg-secondary">{{ total_patients or 0 }}</span></td>
+                                <td class="col-number text-center"><span class="badge bg-primary">{{ total_sampling }}</span></td>
+                                <td class="col-fee text-center"><span class="badge bg-primary">{{ total_moto_fee }}</span></td>
+                                <td class="col-fee text-center"><span class="badge bg-primary">{{ total_far_away_fee }}</span></td>
+                                <td class="col-fee text-center"><span class="badge bg-primary">{{ total_fees }}</span></td>
+                                <td class="col-types"></td>
+                                <td class="col-notes"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <p>No records found for this member.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    // FILTER FUNCTIONALITY
+    // ============================================================
+    let filterActive = false;
+    let tableVisible = true;
+
+    function toggleFilter() {
+        const filterRow = document.getElementById('filterRow');
+        const filterBtn = document.getElementById('filterToggleBtn');
+        const filterText = filterBtn.querySelector('.btn-text');
+
+        filterRow.classList.toggle('show');
+        filterBtn.classList.toggle('active');
+
+        if (filterRow.classList.contains('show')) {
+            filterText.textContent = 'Hide Filter';
+            document.getElementById('filterInput').focus();
+        } else {
+            filterText.textContent = 'Filter';
+            clearFilter();
+        }
+    }
+
+    function applyFilter() {
+        const input = document.getElementById('filterInput');
+        const column = document.getElementById('filterColumn');
+        const rows = document.querySelectorAll('.record-row');
+        const filterText = input.value.toLowerCase().trim();
+        const filterColumn = column.value;
+        let visibleCount = 0;
+
+        rows.forEach(function(row) {
+            let match = false;
+            if (filterText === '') {
+                match = true;
+            } else {
+                // Get all cell values based on column filter
+                const cells = row.querySelectorAll('td');
+                if (filterColumn === 'all') {
+                    // Search all columns
+                    const allText = row.textContent.toLowerCase();
+                    match = allText.includes(filterText);
+                } else {
+                    // Search specific column
+                    const colMap = {
+                        'date': 'col-date-val',
+                        'clinic': 'col-clinic-val',
+                        'doctor': 'col-doctor-val',
+                        'types': 'col-types-val',
+                        'notes': 'col-notes-val'
+                    };
+                    const className = colMap[filterColumn];
+                    if (className) {
+                        const cell = row.querySelector('.' + className);
+                        if (cell) {
+                            match = cell.textContent.toLowerCase().includes(filterText);
+                        }
+                    }
+                }
+            }
+
+            if (match) {
+                row.classList.remove('hidden-filter');
+                visibleCount++;
+            } else {
+                row.classList.add('hidden-filter');
+            }
+        });
+
+        // Update counter
+        document.getElementById('visibleRecords').textContent = visibleCount;
+        document.getElementById('filterCount').style.display = 'inline-block';
+
+        // Update badge
+        const badge = document.getElementById('recordCountBadge');
+        if (filterText !== '') {
+            badge.textContent = visibleCount + ' of {{ record_count }} records';
+        } else {
+            badge.textContent = '{{ record_count }} records';
+        }
+    }
+
+    function clearFilter() {
+        document.getElementById('filterInput').value = '';
+        document.getElementById('filterColumn').value = 'all';
+        applyFilter();
+        document.getElementById('filterInput').focus();
+    }
+
+    // ============================================================
+    // TOGGLE TABLE VISIBILITY
+    // ============================================================
+    function toggleTable() {
+        const wrapper = document.getElementById('tableBodyWrapper');
+        const btn = document.getElementById('tableToggleBtn');
+        const btnText = btn.querySelector('.btn-text');
+
+        tableVisible = !tableVisible;
+        if (tableVisible) {
+            wrapper.classList.remove('hidden');
+            btnText.textContent = 'Hide';
+            btn.classList.remove('active');
+        } else {
+            wrapper.classList.add('hidden');
+            btnText.textContent = 'Show';
+            btn.classList.add('active');
+        }
+    }
+
+    // ============================================================
+    // RESIZER FUNCTIONALITY
+    // ============================================================
+    document.addEventListener("DOMContentLoaded", function() {
+        const table = document.getElementById("recordsTable");
+        if (!table) return;
+
+        // Add resizer handles to each th (except last)
+        const headers = table.querySelectorAll("thead th");
+        headers.forEach(function(th, index) {
+            if (index === headers.length - 1) return;
+            const resizer = document.createElement("span");
+            resizer.className = "resizer";
+            resizer.setAttribute("data-col-index", index);
+            resizer.style.cssText = "position:absolute; top:0; right:0; width:8px; height:100%; cursor:col-resize; background:transparent; z-index:5;";
+            th.style.position = "relative";
+            th.appendChild(resizer);
+        });
+
+        let startX, startWidth, currentCol, currentResizer;
+
+        function initResize(e) {
+            const resizer = e.target.closest(".resizer");
+            if (!resizer) return;
+            e.preventDefault();
+            currentResizer = resizer;
+            const th = resizer.closest("th");
+            currentCol = th;
+            startX = e.clientX;
+            startWidth = th.getBoundingClientRect().width;
+            resizer.style.background = "var(--cml-blue)";
+            resizer.style.opacity = "0.35";
+
+            document.addEventListener("mousemove", resizeColumn);
+            document.addEventListener("mouseup", stopResize);
+            document.body.style.userSelect = "none";
+            document.body.style.cursor = "col-resize";
+        }
+
+        function resizeColumn(e) {
+            if (!currentCol) return;
+            const diff = e.clientX - startX;
+            let newWidth = startWidth + diff;
+            const minW = 60;
+            if (newWidth < minW) newWidth = minW;
+            currentCol.style.width = newWidth + "px";
+            currentCol.style.minWidth = newWidth + "px";
+        }
+
+        function stopResize() {
+            if (currentResizer) {
+                currentResizer.style.background = "transparent";
+                currentResizer.style.opacity = "1";
+            }
+            document.removeEventListener("mousemove", resizeColumn);
+            document.removeEventListener("mouseup", stopResize);
+            document.body.style.userSelect = "";
+            document.body.style.cursor = "";
+            currentCol = null;
+            currentResizer = null;
+        }
+
+        table.addEventListener("mousedown", function(e) {
+            if (e.target.classList.contains("resizer")) {
+                initResize(e);
+            }
+        });
+
+        // Ensure footer cells align properly with header columns
+        const footerCells = table.querySelectorAll("tfoot td");
+        const headerCells = table.querySelectorAll("thead th");
+        if (footerCells.length === headerCells.length) {
+            headerCells.forEach(function(th, idx) {
+                if (footerCells[idx]) {
+                    footerCells[idx].className = th.className;
+                }
+            });
+        }
+
+        // Detect scroll to show/hide shadow indicator
+        const tableResponsive = document.getElementById("tableResponsive");
+        if (tableResponsive) {
+            tableResponsive.addEventListener("scroll", function() {
+                if (this.scrollLeft > 0) {
+                    this.classList.add("scrolled");
+                } else {
+                    this.classList.remove("scrolled");
+                }
+            });
+        }
+
+        // Initialize filter count
+        applyFilter();
+    });
+</script>
+{% endblock %}

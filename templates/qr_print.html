@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Login Card — {{ member.full_name }} | CAMMED LAB</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Battambang:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --cml-blue: #203b79;
+            --cml-blue-light: #2b5d8d;
+            --cml-blue-deep: #142a56;
+            --cml-accent: #ed1c24;
+            --cml-cyan: #0ea5e9;
+            --bg: #eef2f7;
+            --card-bg: #ffffff;
+            --text: #0b1a2b;
+            --text-soft: #4a5b6e;
+            --text-muted: #94a8bb;
+            --border: #e5eaf1;
+            --radius: 16px;
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.10);
+            --font: 'Inter', 'Battambang', system-ui, -apple-system, sans-serif;
+            --mono: 'JetBrains Mono', 'Courier New', monospace;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: var(--font);
+            color: var(--text);
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ═══════════ SCREEN WRAPPER ═══════════ */
+        .print-area {
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Cut marks — visible on screen only */
+        .cut-mark {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            pointer-events: none;
+            opacity: 0.35;
+        }
+        .cut-mark::before,
+        .cut-mark::after {
+            content: "";
+            position: absolute;
+            background: #94a3b8;
+        }
+        .cut-mark::before { width: 1px; height: 100%; left: 50%; transform: translateX(-50%); }
+        .cut-mark::after { height: 1px; width: 100%; top: 50%; transform: translateY(-50%); }
+        .cut-tl { top: -10px; left: -10px; }
+        .cut-tr { top: -10px; right: -10px; }
+        .cut-bl { bottom: -10px; left: -10px; }
+        .cut-br { bottom: -10px; right: -10px; }
+
+        /* ═══════════ THE CARD ═══════════ */
+        .qr-card {
+            position: relative;
+            width: 420px;
+            max-width: 100%;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .qr-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 6px;
+            background: linear-gradient(90deg,
+                var(--cml-blue) 0%,
+                var(--cml-blue-light) 50%,
+                var(--cml-accent) 100%);
+            z-index: 3;
+        }
+        .qr-card::after {
+            content: "CML";
+            position: absolute;
+            right: -20px;
+            bottom: -40px;
+            font-size: 180px;
+            font-weight: 900;
+            color: rgba(32, 59, 121, 0.025);
+            letter-spacing: -10px;
+            line-height: 1;
+            pointer-events: none;
+            z-index: 0;
+            user-select: none;
+        }
+
+        /* ═══════════ CONFIDENTIAL BANNER (print only) ═══════════ */
+        .confidential-band {
+            display: none;   /* hidden on screen */
+            background: var(--cml-accent);
+            color: #ffffff;
+            text-align: center;
+            padding: 5pt 8pt;
+            font-size: 7pt;
+            font-weight: 900;
+            letter-spacing: 2pt;
+            text-transform: uppercase;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        /* ═══════════ HEADER ═══════════ */
+        .card-header {
+            position: relative;
+            padding: 26px 28px 20px;
+            text-align: center;
+            border-bottom: 1px dashed var(--border);
+            z-index: 1;
+        }
+        .brand {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: -1.2px;
+            color: var(--cml-blue);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .brand .accent { color: var(--cml-accent); }
+        .brand-sub {
+            font-family: var(--mono);
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        .card-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 14px;
+            padding: 5px 14px;
+            border-radius: 100px;
+            background: rgba(32, 59, 121, 0.08);
+            color: var(--cml-blue);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        /* ═══════════ QR CODE ═══════════ */
+        .qr-wrap {
+            padding: 28px 28px 20px;
+            display: flex;
+            justify-content: center;
+            z-index: 1;
+            position: relative;
+        }
+        .qr-box {
+            position: relative;
+            padding: 18px;
+            background: #ffffff;
+            border: 2px solid var(--border);
+            border-radius: 14px;
+        }
+        .qr-box::before,
+        .qr-box::after {
+            content: "";
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border: 3px solid var(--cml-blue);
+        }
+        .qr-box::before {
+            top: -3px; left: -3px;
+            border-right: 0; border-bottom: 0;
+            border-top-left-radius: 14px;
+        }
+        .qr-box::after {
+            bottom: -3px; right: -3px;
+            border-left: 0; border-top: 0;
+            border-bottom-right-radius: 14px;
+        }
+        .qr-box img {
+            display: block;
+            width: 260px;
+            height: 260px;
+            image-rendering: pixelated;
+        }
+
+        /* ═══════════ MEMBER INFO ═══════════ */
+        .member-info {
+            padding: 0 28px 22px;
+            text-align: center;
+            z-index: 1;
+            position: relative;
+        }
+        .member-avatar {
+            width: 56px;
+            height: 56px;
+            margin: -28px auto 12px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--cml-blue), var(--cml-blue-light));
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: 800;
+            display: grid;
+            place-items: center;
+            border: 4px solid #ffffff;
+            box-shadow: 0 4px 14px rgba(32, 59, 121, 0.25);
+        }
+        .member-name {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.3px;
+            margin-bottom: 3px;
+        }
+        .member-username {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text-soft);
+            font-weight: 600;
+        }
+        .member-role {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 3px 10px;
+            border-radius: 6px;
+            background: rgba(32, 59, 121, 0.08);
+            color: var(--cml-blue);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* ═══════════ DETAILS ═══════════ */
+        .card-details {
+            padding: 18px 28px;
+            background: #fafbfe;
+            border-top: 1px dashed var(--border);
+            border-bottom: 1px dashed var(--border);
+            z-index: 1;
+            position: relative;
+        }
+        .detail-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 6px 0;
+            font-size: 12px;
+        }
+        .detail-row + .detail-row { border-top: 1px solid rgba(229, 234, 241, 0.6); }
+        .detail-label {
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 0.6px;
+            flex-shrink: 0;
+        }
+        .detail-value {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text);
+            font-weight: 600;
+            text-align: right;
+            word-break: break-all;
+        }
+        .format-badge {
+            display: inline-block;
+            padding: 3px 9px;
+            border-radius: 5px;
+            background: rgba(32, 59, 121, 0.1);
+            color: var(--cml-blue);
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        /* 🆕 Payload block — hidden on print */
+        .payload-block {
+            /* visible on screen, hidden in @media print below */
+        }
+
+        /* 🆕 Masked username row — print only */
+        .masked-username-row {
+            display: none;   /* screen: hidden, print: shown */
+        }
+
+        /* ═══════════ INSTRUCTIONS ═══════════ */
+        .card-instructions {
+            padding: 20px 28px;
+            z-index: 1;
+            position: relative;
+        }
+        .card-instructions .step {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--cml-blue);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+        .card-instructions .step-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 4px;
+            text-align: left;
+            margin-bottom: 8px;
+            font-size: 11.5px;
+            color: var(--text-soft);
+            line-height: 1.5;
+        }
+        .card-instructions .step-row:last-child { margin-bottom: 0; }
+
+        /* ═══════════ FOOTER ═══════════ */
+        .card-footer {
+            padding: 12px 28px 16px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            font-family: var(--mono);
+            font-size: 9.5px;
+            color: var(--text-muted);
+            letter-spacing: 0.4px;
+            z-index: 1;
+            position: relative;
+        }
+        .card-footer strong { color: var(--text-soft); font-weight: 700; }
+
+        /* ═══════════ ACTION BAR ═══════════ */
+        .action-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 22px;
+            border: 0;
+            border-radius: 10px;
+            font-family: var(--font);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        }
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--cml-blue), var(--cml-blue-light));
+            color: #ffffff;
+        }
+        .action-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(32, 59, 121, 0.35);
+        }
+        .action-btn.secondary {
+            background: #ffffff;
+            color: var(--text-soft);
+            border: 1px solid var(--border);
+        }
+        .action-btn.secondary:hover {
+            background: #f6f8fc;
+            transform: translateY(-2px);
+        }
+
+        .watermark-note {
+            margin-top: 18px;
+            font-size: 10.5px;
+            color: var(--text-muted);
+            text-align: center;
+            max-width: 420px;
+            line-height: 1.6;
+        }
+        .watermark-note strong { color: var(--cml-accent); }
+
+        /* ═══════════════════════════════════════════
+           PRINT STYLES — Hide credentials, keep QR
+           ═══════════════════════════════════════════ */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 15mm;
+            }
+
+            html, body {
+                background: #ffffff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                min-height: auto !important;
+                display: block !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Hide on-screen-only UI */
+            .action-bar,
+            .watermark-note,
+            .cut-mark {
+                display: none !important;
+            }
+
+            /* 🆕 HIDE anything that leaks credentials */
+            .payload-block {
+                display: none !important;
+            }
+            .member-username {
+                display: none !important;
+            }
+
+            /* 🆕 SHOW the masked username + confidential banner */
+            .masked-username-row {
+                display: flex !important;
+            }
+            .confidential-band {
+                display: block !important;
+            }
+
+            /* Center the card on the printed page */
+            .print-area {
+                display: block !important;
+                width: 100% !important;
+                padding-top: 10mm;
+            }
+
+            /* The card itself */
+            .qr-card {
+                width: 85mm !important;
+                min-height: 130mm !important;
+                margin: 0 auto !important;
+                box-shadow: none !important;
+                border: 1px solid #d0d8e2 !important;
+                border-radius: 10px !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                overflow: hidden !important;
+                font-size: 10pt !important;
+            }
+
+            .qr-card::before {
+                height: 4px !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .qr-card::after {
+                color: rgba(32, 59, 121, 0.04) !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Confidential band at the top of the card */
+            .confidential-band {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Compact padding for print */
+            .card-header { padding: 12pt 16pt 8pt !important; }
+            .brand { font-size: 16pt !important; }
+            .brand-sub { font-size: 6pt !important; letter-spacing: 2pt !important; }
+            .card-title {
+                margin-top: 6pt !important;
+                padding: 3pt 8pt !important;
+                font-size: 6.5pt !important;
+                letter-spacing: 1pt !important;
+            }
+
+            .qr-wrap { padding: 12pt 16pt 8pt !important; }
+            .qr-box {
+                padding: 8pt !important;
+                border-width: 1.5pt !important;
+                border-radius: 8pt !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .qr-box::before,
+            .qr-box::after {
+                width: 14pt !important;
+                height: 14pt !important;
+                border-width: 2pt !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .qr-box img {
+                width: 52mm !important;
+                height: 52mm !important;
+                image-rendering: auto !important;
+            }
+
+            .member-info { padding: 0 16pt 10pt !important; }
+            .member-avatar {
+                width: 28pt !important;
+                height: 28pt !important;
+                margin: -14pt auto 6pt !important;
+                font-size: 12pt !important;
+                border-width: 2pt !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .member-name { font-size: 11pt !important; }
+            .member-role {
+                margin-top: 4pt !important;
+                padding: 2pt 6pt !important;
+                font-size: 6pt !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .card-details { padding: 8pt 16pt !important; }
+            .detail-row { padding: 2.5pt 0 !important; font-size: 7.5pt !important; }
+            .detail-label { font-size: 6pt !important; }
+            .detail-value { font-size: 6.5pt !important; }
+            .format-badge {
+                padding: 1.5pt 5pt !important;
+                font-size: 6pt !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .card-instructions { padding: 8pt 16pt !important; }
+            .card-instructions .step-row {
+                font-size: 7pt !important;
+                margin-bottom: 4pt !important;
+                line-height: 1.4 !important;
+            }
+            .card-instructions .step {
+                width: 10pt !important;
+                height: 10pt !important;
+                font-size: 5.5pt !important;
+                margin-right: 4pt !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .card-footer {
+                padding: 6pt 16pt 8pt !important;
+                font-size: 5.5pt !important;
+                letter-spacing: 0.2pt !important;
+            }
+
+            /* Ensure colors survive */
+            .brand,
+            .brand .accent,
+            .card-title,
+            .member-avatar,
+            .member-role,
+            .step,
+            .format-badge,
+            .confidential-band {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Cut guide */
+            .qr-card {
+                outline: 1pt dashed #cbd5e1 !important;
+                outline-offset: 4pt !important;
+            }
+        }
+
+        /* ═══════════ RESPONSIVE ═══════════ */
+        @media (max-width: 480px) {
+            body { padding: 20px 12px; }
+            .qr-card { width: 100%; }
+            .qr-box img { width: 220px; height: 220px; }
+            .card-header, .qr-wrap, .member-info,
+            .card-details, .card-instructions, .card-footer { padding-left: 20px; padding-right: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ═══════════ PRINT AREA ═══════════ -->
+    <div class="print-area">
+
+        <!-- Cut marks (screen only) -->
+        <span class="cut-mark cut-tl"></span>
+        <span class="cut-mark cut-tr"></span>
+        <span class="cut-mark cut-bl"></span>
+        <span class="cut-mark cut-br"></span>
+
+        <!-- THE CARD -->
+        <div class="qr-card">
+
+            <!-- 🆕 CONFIDENTIAL BANNER (print only) -->
+            <div class="confidential-band">
+                ⚠ Confidential · Do Not Photograph
+            </div>
+
+            <!-- HEADER -->
+            <div class="card-header">
+                <div class="brand">C<span class="accent">A</span>MMED LAB</div>
+                <div class="brand-sub">Diagnostics · CMS</div>
+                <div class="card-title">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                        <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                        <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                        <path d="M14 14h2v2h-2z" fill="currentColor" stroke="none"></path>
+                        <path d="M18 14h2v2h-2z" fill="currentColor" stroke="none"></path>
+                        <path d="M14 18h2v2h-2z" fill="currentColor" stroke="none"></path>
+                        <path d="M18 18h2v2h-2z" fill="currentColor" stroke="none"></path>
+                    </svg>
+                    QR Login Card
+                </div>
+            </div>
+
+            <!-- QR CODE -->
+            <div class="qr-wrap">
+                <div class="qr-box">
+                    <img
+                        src="{{ url_for('admin_member_qr_image',
+                                        member_id=member.id,
+                                        password=password,
+                                        format=fmt,
+                                        box_size=14,
+                                        border=2) }}"
+                        alt="QR Code for {{ member.full_name }}"
+                        width="260"
+                        height="260"
+                    >
+                </div>
+            </div>
+
+            <!-- MEMBER INFO -->
+            <div class="member-info">
+                <div class="member-avatar">{{ member.full_name[:1] | upper }}</div>
+                <div class="member-name">{{ member.full_name }}</div>
+                <div class="member-username">@{{ member.username }}</div>
+                <div class="member-role">
+                    {{ 'Administrator' if member.is_admin else 'Collector' }}
+                </div>
+            </div>
+
+            <!-- DETAILS -->
+            <div class="card-details">
+                <div class="detail-row">
+                    <span class="detail-label">Format</span>
+                    <span class="format-badge">{{ fmt | upper }}</span>
+                </div>
+
+                <!-- 🆕 Payload block — HIDDEN ON PRINT -->
+                <div class="detail-row payload-block">
+                    <span class="detail-label">Payload</span>
+                    <span class="detail-value">
+                        {%- if fmt == 'plain' -%}
+                            {{ member.username }}:{{ password }}
+                        {%- elif fmt == 'url' -%}
+                            cammedlab://login?u={{ member.username }}&p={{ password }}
+                        {%- else -%}
+                            {"u":"{{ member.username }}","p":"{{ password }}"}
+                        {%- endif -%}
+                    </span>
+                </div>
+
+                <!-- 🆕 Masked username row — SHOWN ONLY ON PRINT -->
+                <div class="detail-row masked-username-row">
+                    <span class="detail-label">Account</span>
+                    <span class="detail-value">
+                        {{ member.username[0] }}****{{ member.username[-1] if member.username|length > 1 else '' }}
+                    </span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Generated</span>
+                    <span class="detail-value">{{ now.strftime('%Y-%m-%d %H:%M') }} (UTC+7)</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Error Correction</span>
+                    <span class="detail-value">High (30%)</span>
+                </div>
+            </div>
+
+            <!-- INSTRUCTIONS -->
+            <div class="card-instructions">
+                <div class="step-row">
+                    <span class="step">1</span>
+                    <span>Open the login page and tap the <strong>QR Code</strong> tab.</span>
+                </div>
+                <div class="step-row">
+                    <span class="step">2</span>
+                    <span>Scan this code with the camera, or upload its image.</span>
+                </div>
+                <div class="step-row">
+                    <span class="step">3</span>
+                    <span>You'll be signed in automatically.</span>
+                </div>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="card-footer">
+                <strong>CAMMED LAB CMS</strong> · Keep this card confidential<br>
+                Do not share or photograph this QR code
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ ACTION BAR (screen only) ═══════════ -->
+    <div class="action-bar">
+        <button type="button" class="action-btn primary" onclick="window.print()">
+            🖨️ Print Card
+        </button>
+        <a
+            href="{{ url_for('admin_member_qr_download',
+                             member_id=member.id,
+                             password=password,
+                             format=fmt) }}"
+            class="action-btn secondary"
+        >
+            ⬇️ Download PNG
+        </a>
+        <button type="button" class="action-btn secondary" onclick="window.close()">
+            ✕ Close Tab
+        </button>
+    </div>
+
+    <p class="watermark-note">
+        ⚠️ <strong>Security notice:</strong> This QR code contains the member's login credentials.
+        Print or store it securely. Never share it over unencrypted channels.
+    </p>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('autoprint') === '1') {
+                setTimeout(() => window.print(), 500);
+            }
+        });
+    </script>
+
+</body>
+</html>

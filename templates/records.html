@@ -1,0 +1,1209 @@
+{% extends "base.html" %}
+{% block title %}All Collection Records - CMS{% endblock %}
+
+{% block content %}
+<style>
+    /* ═══════════════════════════════════════════════════════════
+       FONTS - INTER (English) + KH MER OS BATTAMBANG (Khmer Fallback)
+       ═══════════════════════════════════════════════════════════ */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Battambang:wght@400;700&display=swap');
+
+    :root {
+        --cml-blue: #2b5d8d;
+        --cml-dark-blue: #1f456c;
+        --cml-red: #d9534f;
+        --dash-bg: #f4f7fb;
+        --dash-card: #ffffff;
+        --dash-border: #e8eef5;
+        --dash-text: #1e293b;
+        --dash-muted: #64748b;
+        --dash-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 4px 16px rgba(15, 23, 42, 0.04);
+        --dash-radius: 16px;
+        --border-light: #e9edf4;
+        --khmer-font: 'Inter', 'Khmer OS Battambang', 'Battambang', 'Kantumruy Pro', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+        background: var(--dash-bg);
+        font-family: var(--khmer-font);
+        line-height: 1.6;
+    }
+
+    h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, select, textarea, th, td {
+        font-family: inherit;
+    }
+
+    .records-wrap {
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px 24px 40px;
+    }
+
+    .page-header {
+        background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+        border-radius: 20px;
+        padding: 1.75rem 2rem;
+        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+        border: 1px solid #e8eef5;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--cml-blue), #6c8fc7, var(--cml-blue));
+        background-size: 300% 100%;
+        animation: shimmer-gradient 4s ease-in-out infinite;
+    }
+
+    @keyframes shimmer-gradient {
+        0%, 100% { background-position: -300% 0; }
+        50% { background-position: 300% 0; }
+    }
+
+    .header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+    }
+
+    .header-icon-wrapper {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, var(--cml-blue), var(--cml-dark-blue));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        box-shadow: 0 4px 16px rgba(43, 93, 141, 0.25);
+        flex-shrink: 0;
+        transition: transform 0.3s ease;
+    }
+
+    .header-icon-wrapper:hover {
+        transform: scale(1.05) rotate(-3deg);
+    }
+
+    .header-title-group h3 {
+        font-weight: 800;
+        color: var(--cml-blue);
+        letter-spacing: -0.5px;
+        font-size: 1.65rem;
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .header-title-group .subtitle {
+        font-weight: 400;
+        font-size: 0.92rem;
+        color: #64748b;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-back {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        color: #4a5568;
+        font-weight: 600;
+        padding: 0.6rem 1.4rem;
+        border-radius: 10px;
+        transition: all 0.25s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        white-space: nowrap;
+        font-size: 0.9rem;
+    }
+
+    .btn-back:hover {
+        background: var(--cml-blue);
+        border-color: var(--cml-blue);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 14px rgba(43, 93, 141, 0.25);
+        text-decoration: none;
+    }
+
+    .header-stats {
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+        border-top: 2px solid #f1f5f9;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 10px;
+        background: #ffffff;
+        border: 1px solid #e8eef5;
+        transition: all 0.2s;
+    }
+
+    .stat-item:hover {
+        background: #f8fafc;
+        transform: translateY(-2px);
+        box-shadow: var(--dash-shadow);
+    }
+
+    .stat-item .stat-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    .stat-item .stat-icon.blue { background: #eff6ff; color: #3b82f6; }
+    .stat-item .stat-icon.green { background: #ecfdf5; color: #10b981; }
+    .stat-item .stat-icon.purple { background: #f3e8ff; color: #7c3aed; }
+    .stat-item .stat-icon.orange { background: #fef3c7; color: #f59e0b; }
+
+    .stat-item .stat-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-item .stat-label {
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #94a3b8;
+    }
+
+    .stat-item .stat-value {
+        font-weight: 700;
+        color: var(--dash-text);
+        font-size: 0.95rem;
+        line-height: 1.2;
+    }
+
+    .custom-card {
+        background: var(--dash-card);
+        border: 1px solid var(--dash-border);
+        border-radius: var(--dash-radius);
+        box-shadow: var(--dash-shadow);
+        overflow: hidden;
+        margin-bottom: 1.75rem;
+    }
+
+    .custom-card .card-header {
+        background: transparent;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 1rem 1.5rem;
+        font-weight: 700;
+        color: var(--cml-blue);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    /* ✅ FIX: Prevent buttons from wrapping into two lines */
+    .header-actions {
+        flex-wrap: nowrap !important;
+    }
+
+    /* ✅ FIX: Add New / Export CSV white-space nowrap */
+    .header-actions .btn {
+        white-space: nowrap !important;
+    }
+
+    .btn-filter, .btn-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 0.4rem 1.2rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        background-color: #dbeafe;
+        color: #1e3a8a;
+        border: 1px solid #bfdbfe;
+        line-height: 1.1;
+        white-space: nowrap;
+    }
+
+    .btn-filter:hover, .btn-toggle:hover {
+        background-color: #bfdbfe;
+        border-color: #93c5fd;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .btn-filter.active, .btn-toggle.active {
+        background-color: #1e3a8a;
+        border-color: #1e3a8a;
+        color: #ffffff;
+    }
+
+    .filter-row {
+        display: none;
+        padding: 12px 20px;
+        background: #fafbfe;
+        border-bottom: 1px solid var(--border-light);
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .filter-row.show { display: flex; }
+
+    .filter-row .filter-input {
+        flex: 1;
+        min-width: 180px;
+        padding: 8px 14px;
+        border: 2px solid var(--border-light);
+        border-radius: 8px;
+        font-size: 13px;
+        color: var(--dash-text);
+        background: #fff;
+        outline: none;
+        transition: all 0.25s;
+    }
+
+    .filter-row .filter-input:focus {
+        border-color: var(--cml-blue);
+        box-shadow: 0 0 0 3px rgba(43, 93, 141, 0.12);
+    }
+
+    .filter-row .filter-select {
+        padding: 8px 14px;
+        border: 2px solid var(--border-light);
+        border-radius: 8px;
+        font-size: 13px;
+        color: var(--dash-text);
+        background: #fff;
+        outline: none;
+        cursor: pointer;
+        min-width: 120px;
+    }
+
+    .filter-row .filter-select:focus {
+        border-color: var(--cml-blue);
+        box-shadow: 0 0 0 3px rgba(43, 93, 141, 0.12);
+    }
+
+    .filter-row .filter-clear {
+        padding: 8px 16px;
+        border: 0;
+        border-radius: 8px;
+        background: #ef4444;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s;
+    }
+
+    .filter-row .filter-clear:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .filter-row .filter-count {
+        font-size: 12px;
+        color: var(--dash-muted);
+        padding: 4px 10px;
+        background: #e9edf4;
+        border-radius: 20px;
+        white-space: nowrap;
+    }
+
+    .filter-row .filter-count strong { color: var(--cml-blue); }
+
+    .table-body-wrapper.hidden { display: none; }
+
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 0;
+        margin: 0;
+        position: relative;
+        scrollbar-width: thin;
+        scrollbar-color: transparent transparent;
+        transition: scrollbar-color 0.3s ease;
+    }
+
+    .table-wrapper:hover {
+        scrollbar-color: var(--cml-blue) transparent;
+    }
+
+    .table-wrapper::-webkit-scrollbar {
+        height: 10px;
+        background: transparent;
+    }
+
+    .table-wrapper::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 6px;
+    }
+
+    .table-wrapper::-webkit-scrollbar-thumb {
+        background: var(--cml-blue);
+        border-radius: 6px;
+        border: 2px solid #e9edf4;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .table-wrapper:hover::-webkit-scrollbar-thumb {
+        opacity: 1;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       CUSTOM TABLE STYLING (MATCHES THE IMAGE & EXPANDS LAST COLUMN)
+       ═══════════════════════════════════════════════════════════ */
+    .records-table {
+        width: 100%;
+        font-size: 13px;
+        table-layout: auto;
+        border-collapse: separate;
+        border-spacing: 0 1px;
+        background-color: transparent;
+    }
+
+    .records-table thead th {
+        background: #f8fafd;
+        color: #5a6d82;
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid var(--border-light);
+        padding: 12px 14px;
+        white-space: nowrap;
+        vertical-align: middle;
+        text-align: left;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .records-table thead th.text-center { text-align: center; }
+    .records-table thead th.text-end { text-align: right; }
+
+    /* The Row: Set the background color and the indented shadow */
+    .records-table tbody tr {
+        background-color: #ffffff;
+        box-shadow: inset 20px 0 0 #ffffff; /* Masks the left side of the border */
+    }
+
+    /* The Cells: Add padding to the left/right, and apply the faint border ONLY to the bottom */
+    .records-table tbody td {
+        padding: 14px;
+        padding-left: 20px; /* Indent content from the left edge */
+        padding-right: 20px; /* Indent content from the right edge */
+        border-right: 1px solid transparent;
+        border-bottom: 1px solid #f0f3f8; /* The faint line */
+        color: var(--dash-text);
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    /* The very left cell: Ensure the left side is solid white */
+    .records-table tbody td:first-child {
+        border-left: 0;
+        box-shadow: inset 20px 0 0 #ffffff;
+    }
+
+    /* The very right cell: EXPANDS TO FILL REMAINING SPACE */
+    .records-table tbody td:last-child {
+        width: auto; /* Fills remaining space */
+        white-space: normal;
+        word-break: break-word;
+        border-right: 0;
+    }
+
+    /* Subtle hover effect */
+    .records-table tbody tr:hover td {
+        background-color: #f6faff;
+    }
+    .records-table tbody tr:hover {
+        box-shadow: inset 20px 0 0 #f6faff;
+    }
+
+    /* Remove the border on the last row */
+    .records-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+    /* ═══════════════════════════════════════════════════════════
+       END CUSTOM TABLE STYLING
+       ═══════════════════════════════════════════════════════════ */
+
+    .records-table tfoot td {
+        background: #f0f4f8;
+        font-weight: 700;
+        padding: 10px 14px;
+        border-top: 2px solid var(--border-light);
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+    .records-table tfoot td.text-end { text-align: right; }
+    .records-table tfoot td.text-center { text-align: center; }
+
+    .col-index { width: 4%; min-width: 40px; }
+    .col-date { width: 8%; min-width: 85px; }
+    .col-time { width: 6%; min-width: 55px; }
+    .col-dur { width: 5%; min-width: 50px; }
+    .col-clinic { width: 13%; min-width: 110px; }
+    .col-doctor { width: 8%; min-width: 70px; }
+    .col-number { width: 6%; min-width: 60px; text-align: center; }
+    .col-fee { width: 6%; min-width: 60px; text-align: center; }
+    .col-types { width: 8%; min-width: 80px; }
+    .col-notes { width: auto; min-width: 150px; }
+    .col-actions { width: auto; min-width: 80px; }
+
+    .specimen-pill-wrap {
+        position: relative;
+        display: inline-block;
+        margin: 3px 4px;
+        vertical-align: top;
+    }
+
+    .specimen-count-sup {
+        position: absolute;
+        top: -7px;
+        right: -6px;
+        min-width: 15px;
+        height: 15px;
+        padding: 0 3px;
+        border-radius: 999px;
+        background: #1e3a8a;
+        color: #ffffff;
+        font-size: 0.6rem;
+        font-weight: 800;
+        line-height: 15px;
+        text-align: center;
+        box-shadow: 0 0 0 2px #ffffff;
+        z-index: 2;
+    }
+
+    .records-table .specimen-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        margin: 0;
+        white-space: nowrap;
+    }
+    .records-table .pill-blood   { background: #fee2e2; color: #b91c1c; }
+    .records-table .pill-serum   { background: #ffedd5; color: #c2410c; }
+    .records-table .pill-urine   { background: #d1fae5; color: #065f46; }
+    .records-table .pill-swab    { background: #dbeafe; color: #1e40af; }
+    .records-table .pill-plasma  { background: #ede9fe; color: #5b21b6; }
+    .records-table .pill-stool   { background: #fef3c7; color: #92400e; }
+    .records-table .pill-other   { background: #f1f5f9; color: #475569; }
+
+    .badge-dur {
+        background: #e8f4fd;
+        color: var(--cml-blue);
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .badge-specimen {
+        background: var(--cml-blue);
+        color: white;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .badge-fees {
+        background: #16a085;
+        color: white;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+        margin: 0 2px;
+        padding: 0;
+        box-sizing: border-box;
+        flex-shrink: 0;
+    }
+
+    .action-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        text-decoration: none;
+    }
+
+    .action-btn.edit { background: #f59e0b; }
+    .action-btn.edit:hover { background: #d97706; }
+    .action-btn.delete { background: #ef4444; }
+    .action-btn.delete:hover { background: #dc2626; }
+
+    .action-btn svg {
+        width: 16px;
+        height: 16px;
+        fill: white;
+        display: block;
+    }
+
+    .action-group {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+        flex-wrap: nowrap;
+        justify-content: center;
+    }
+
+    .record-row.hidden-filter {
+        display: none;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+    .empty-state .empty-icon { font-size: 3rem; color: #d1d5db; margin-bottom: 16px; }
+    .empty-state h5 { color: var(--dash-text); font-weight: 700; }
+    .empty-state p { color: var(--dash-muted); }
+
+    .custom-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s ease;
+    }
+    .custom-modal-overlay.active { display: flex; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .custom-modal {
+        background: white;
+        border-radius: 16px;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+        animation: slideUp 0.3s ease;
+        overflow: hidden;
+    }
+
+    @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .custom-modal-header {
+        padding: 1.25rem 1.5rem;
+        background: linear-gradient(135deg, #fef2f2, #fee2e2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .custom-modal-header h5 { color: #991b1b; font-weight: 700; margin: 0; font-size: 1.1rem; }
+    .custom-modal-header h5 i { margin-right: 10px; }
+
+    .custom-modal-close {
+        background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #991b1b; opacity: 0.7; transition: opacity 0.2s;
+    }
+    .custom-modal-close:hover { opacity: 1; }
+
+    .custom-modal-body { padding: 1.5rem; }
+    .custom-modal-body .warning-text { color: #1e293b; font-size: 1rem; margin-bottom: 0.5rem; }
+    .custom-modal-body .warning-subtext { color: #64748b; font-size: 0.9rem; }
+
+    .custom-modal-footer {
+        padding: 1rem 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 0.5rem;
+    }
+    .custom-modal-footer .btn { padding: 0.5rem 1.5rem; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; }
+    .custom-modal-footer .btn-secondary { background: #f1f5f9; color: #475569; }
+    .custom-modal-footer .btn-secondary:hover { background: #e2e8f0; }
+    .custom-modal-footer .btn-danger { background: #dc2626; color: white; }
+    .custom-modal-footer .btn-danger:hover { background: #b91c1c; }
+
+    #customToast {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 20px;
+        border-radius: 12px;
+        background: #ffffff;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        border-left: 5px solid var(--cml-blue);
+        transform: translateY(150%);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s;
+        opacity: 0;
+        pointer-events: none;
+        max-width: 350px;
+    }
+
+    #customToast.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    #customToast .toast-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #eff6ff;
+        color: var(--cml-blue);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+
+    #customToast .toast-message {
+        color: var(--dash-text);
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    /* ─── RESPONSIVE FIX FOR BUTTONS ─── */
+    @media (max-width: 992px) {
+        .card-header { flex-direction: column; align-items: stretch !important; }
+        .header-actions {
+            width: 100%;
+            justify-content: flex-start !important;
+            flex-wrap: wrap !important;
+        }
+        .header-actions .btn { white-space: nowrap; }
+    }
+
+    @media (max-width: 768px) {
+        .records-wrap { padding: 14px 12px 32px; }
+        .page-header { padding: 1.25rem 1.25rem; border-radius: 16px; }
+        .header-title-group h3 { font-size: 1.3rem; }
+        .header-title-group .subtitle { font-size: 0.8rem; }
+        .stats-grid { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+        .stat-item { padding: 0.4rem 0.5rem; }
+        .records-table { min-width: 1200px; font-size: 12px; }
+        .custom-card .card-header { flex-direction: column; align-items: stretch; }
+        .btn-filter, .btn-toggle { font-size: 0.75rem; padding: 0.35rem 0.9rem; }
+        .action-btn { width: 28px; height: 28px; }
+    }
+
+    @media (max-width: 576px) {
+        .header-actions {
+            gap: 6px !important;
+            flex-wrap: wrap !important;
+        }
+        .header-actions .btn {
+            flex: 1;
+            text-align: center;
+            padding: 0.4rem 0.8rem;
+        }
+    }
+</style>
+
+<!-- Custom Toast HTML -->
+<div id="customToast">
+    <div class="toast-icon">✓</div>
+    <div class="toast-message" id="toastMessage">Action successful!</div>
+</div>
+
+<div class="records-wrap">
+
+    <div class="page-header">
+        <div class="header-top">
+            <div class="header-left">
+                <div class="header-icon-wrapper">
+                    <i class="fas fa-list"></i>
+                </div>
+                <div class="header-title-group">
+                    <h3>All Collection Records</h3>
+                    <p class="subtitle">
+                        <i class="fas fa-circle" style="font-size: 0.3rem; color: var(--cml-blue); opacity: 0.5;"></i>
+                        View and manage all collection records
+                    </p>
+                </div>
+            </div>
+            <a href="{{ url_for('dashboard') }}" class="btn-back">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back</span>
+            </a>
+        </div>
+
+        <div class="header-stats">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-icon blue"><i class="fas fa-file-alt"></i></div>
+                    <div class="stat-content">
+                        <span class="stat-label">Total Records</span>
+                        <span class="stat-value">{{ total_records }}</span>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon green"><i class="fas fa-vial"></i></div>
+                    <div class="stat-content">
+                        <span class="stat-label">Total Specimens</span>
+                        <span class="stat-value">{{ total_specimens }}</span>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon purple"><i class="fas fa-users"></i></div>
+                    <div class="stat-content">
+                        <span class="stat-label">Total Patients</span>
+                        <span class="stat-value">{{ total_patients }}</span>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon orange"><i class="fas fa-money-bill-wave"></i></div>
+                    <div class="stat-content">
+                        <span class="stat-label">Total Fees</span>
+                        <span class="stat-value">{{ "{:,}".format(total_fees or 0) }} ៛</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="custom-card">
+        <div class="card-header">
+            <div class="header-left">
+                <span>
+                    <i class="fas fa-table me-2"></i>
+                    Collection Logs
+                    <span class="badge bg-primary ms-2" style="background: var(--cml-blue) !important;" id="recordCountBadge">{{ records|length }} records</span>
+                </span>
+            </div>
+            <div class="header-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: nowrap;">
+                <button class="btn-filter" id="filterToggleBtn" onclick="toggleFilter()">
+                    <i class="fas fa-search me-1"></i>
+                    <span class="btn-text">Filter</span>
+                </button>
+                <button class="btn-toggle" id="tableToggleBtn" onclick="toggleTable()">
+                    <i class="fas fa-eye me-1"></i>
+                    <span class="btn-text">Toggle</span>
+                </button>
+
+                {% if not is_admin %}
+                <a href="{{ url_for('add_record') }}" class="btn btn-sm btn-primary" style="background: var(--cml-blue); border: none; border-radius: 8px; white-space: nowrap;">
+                    <i class="fas fa-plus me-1"></i> Add New
+                </a>
+                {% endif %}
+
+                <button onclick="saveCsvWithDialog()" class="btn btn-sm btn-success" style="border-radius: 8px; white-space: nowrap;">
+                    <i class="fas fa-file-export me-1"></i> Export CSV
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter Row -->
+        <div class="filter-row" id="filterRow">
+            <input type="text" class="filter-input" id="filterInput" placeholder="Search records..." oninput="applyFilter()">
+            <select class="filter-select" id="filterColumn" onchange="applyFilter()">
+                <option value="all">All Columns</option>
+                <option value="date">Date</option>
+                <option value="clinic">Clinic</option>
+                <option value="doctor">Doctor</option>
+                <option value="types">Types</option>
+                <option value="notes">Notes</option>
+            </select>
+            <button class="filter-clear" onclick="clearFilter()">✕ Clear</button>
+            <span class="filter-count" id="filterCount" style="display: none;">Showing <strong id="visibleRecords">0</strong> records</span>
+        </div>
+
+        <div class="table-body-wrapper" id="tableBodyWrapper">
+            <div class="card-body p-0">
+                {% if records %}
+                <div class="table-wrapper">
+                    <table class="records-table">
+                        <thead>
+                            <tr>
+                                <th class="col-index">#</th>
+                                <th class="col-date">Date</th>
+                                <th class="col-time">Called Time</th>
+                                <th class="col-time">Arrived Time</th>
+                                <th class="col-dur">Duration</th>
+                                <th class="col-clinic">Location</th>
+                                <th class="col-number">Patients</th>
+                                <th class="col-number">Specimens</th>
+                                <th class="col-types">Type</th>
+                                {% if is_admin %}
+                                <th class="col-doctor">Collector</th>
+                                {% else %}
+                                <th class="col-doctor">Doctor</th>
+                                {% endif %}
+                                <th class="col-fee">Fees</th>
+                                <th class="col-notes">Notes</th>
+                                {% if not is_admin %}
+                                <th class="col-actions text-center">Actions</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody id="recordsBody">
+                            {% for r in records %}
+                            <tr class="record-row" data-index="{{ loop.index }}">
+                                <td class="col-index"><strong>{{ loop.index }}</strong></td>
+                                <td class="col-date-val">{{ r.date.strftime('%Y-%m-%d') if r.date else '—' }}</td>
+                                <td class="col-time-val"><strong>{{ r.call_time or '—' }}</strong></td>
+                                <td class="col-time-val"><strong>{{ r.arrived_time or '—' }}</strong></td>
+                                <td class="col-dur-val">
+                                    {% if r.duration %}
+                                    <span class="badge-dur">{{ r.duration }}</span>
+                                    {% else %}—{% endif %}
+                                </td>
+                                <td class="col-clinic-val">{{ r.location or '—' }}</td>
+                                <td class="col-number">{{ r.patient_count or 0 }}</td>
+                                <td class="col-number"><span class="badge-specimen">{{ r.total_sampling or 0 }}</span></td>
+                                <td class="col-types-val">
+                                    {% if r.sample_types_json %}
+                                        {% set display = get_sample_types_display(r.sample_types_json) %}
+                                        {% for part in display.split(', ') %}
+                                            {% set part_words = part.split(' ') %}
+                                            {% set count = part_words[0] if part_words|length > 1 else '' %}
+                                            {% set name = part_words[-1] if part else 'Other' %}
+                                            {% set lower = name|lower %}
+                                            <span class="specimen-pill-wrap">
+                                                {% if count %}
+                                                <sup class="specimen-count-sup">{{ count }}</sup>
+                                                {% endif %}
+                                                <span class="specimen-pill
+                                                    {% if 'blood' in lower %}pill-blood
+                                                    {% elif 'serum' in lower %}pill-serum
+                                                    {% elif 'urine' in lower %}pill-urine
+                                                    {% elif 'swab' in lower %}pill-swab
+                                                    {% elif 'plasma' in lower %}pill-plasma
+                                                    {% elif 'stool' in lower %}pill-stool
+                                                    {% else %}pill-other{% endif %}">{{ name }}</span>
+                                            </span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                {% if is_admin %}
+                                <td class="col-doctor-val">{{ r.member.full_name if r.member else '—' }}</td>
+                                {% else %}
+                                <td class="col-doctor-val">{{ r.doctor or '—' }}</td>
+                                {% endif %}
+                                <td class="col-fee-val">
+                                    {% set fees = (r.moto_fee or 0) + (r.far_away_fee or 0) %}
+                                    {% if fees > 0 %}
+                                    <span class="badge-fees">{{ fees|format_currency }}</span>
+                                    {% else %}—{% endif %}
+                                </td>
+                                <td class="col-notes-val" style="max-width: 100%; overflow: hidden; text-overflow: ellipsis;" title="{{ r.notes or '' }}">
+                                    {{ r.notes[:20] + '...' if r.notes and r.notes|length > 20 else (r.notes or '—') }}
+                                </td>
+                                {% if not is_admin %}
+                                <td class="col-actions text-center">
+                                    <div class="action-group">
+                                        <a href="{{ url_for('edit_record', record_id=r.id) }}" class="action-btn edit" title="Edit Record">
+                                            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                                        </a>
+                                        <button type="button" class="action-btn delete" onclick="openCustomModal({{ r.id }})" title="Delete Record">
+                                            <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5" class="text-end"><strong>TOTAL</strong></td>
+                                <td></td>
+                                <td class="col-number text-center"><strong>{{ total_patients }}</strong></td>
+                                <td class="col-number text-center"><strong>{{ total_specimens }}</strong></td>
+                                <td colspan="2"></td>
+                                <td class="col-fee text-center"><span class="badge-fees">{{ "{:,}".format(total_fees or 0) }} ៛</span></td>
+                                <td colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <h5>No Records Found</h5>
+                    <p>No collection records available. Start by adding your first record.</p>
+                    <a href="{{ url_for('add_record') }}" class="btn btn-primary mt-2" style="background: var(--cml-blue); border: none; border-radius: 8px;">
+                        <i class="fas fa-plus"></i> Add First Record
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ─── CUSTOM DELETE MODAL ─── -->
+<div class="custom-modal-overlay" id="customModal">
+    <div class="custom-modal">
+        <div class="custom-modal-header">
+            <h5><i class="fas fa-exclamation-triangle"></i>Confirm Deletion</h5>
+            <button class="custom-modal-close" onclick="closeCustomModal()">&times;</button>
+        </div>
+        <div class="custom-modal-body">
+            <p class="warning-text">
+                <i class="fas fa-trash me-2" style="color: #dc2626;"></i>
+                Are you sure you want to delete this collection record?
+            </p>
+            <p class="warning-subtext">
+                <i class="fas fa-info-circle me-1" style="color: #94a3b8;"></i>
+                This action cannot be undone. All data associated with this record will be permanently removed.
+            </p>
+        </div>
+        <div class="custom-modal-footer">
+            <button class="btn btn-secondary" onclick="closeCustomModal()">
+                <i class="fas fa-times me-1"></i> Cancel
+            </button>
+            <a href="#" id="customConfirmDeleteBtn" class="btn btn-danger">
+                <i class="fas fa-trash me-1"></i> Delete Record
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// ─── Filter Functionality ───
+let filterActive = false;
+let tableVisible = true;
+
+function toggleFilter() {
+    const filterRow = document.getElementById('filterRow');
+    const filterBtn = document.getElementById('filterToggleBtn');
+    const filterText = filterBtn.querySelector('.btn-text');
+
+    filterRow.classList.toggle('show');
+    filterBtn.classList.toggle('active');
+
+    if (filterRow.classList.contains('show')) {
+        filterText.textContent = 'Hide Filter';
+        document.getElementById('filterInput').focus();
+    } else {
+        filterText.textContent = 'Filter';
+        clearFilter();
+    }
+}
+
+function applyFilter() {
+    const input = document.getElementById('filterInput');
+    const column = document.getElementById('filterColumn');
+    const rows = document.querySelectorAll('.record-row');
+    const filterText = input.value.toLowerCase().trim();
+    const filterColumn = column.value;
+    let visibleCount = 0;
+
+    rows.forEach(function(row) {
+        let match = false;
+        if (filterText === '') {
+            match = true;
+        } else {
+            if (filterColumn === 'all') {
+                const allText = row.textContent.toLowerCase();
+                match = allText.includes(filterText);
+            } else {
+                const colMap = {
+                    'date': 'col-date-val',
+                    'clinic': 'col-clinic-val',
+                    'doctor': 'col-doctor-val',
+                    'types': 'col-types-val',
+                    'notes': 'col-notes-val'
+                };
+                const className = colMap[filterColumn];
+                if (className) {
+                    const cell = row.querySelector('.' + className);
+                    if (cell) {
+                        match = cell.textContent.toLowerCase().includes(filterText);
+                    }
+                }
+            }
+        }
+
+        if (match) {
+            row.classList.remove('hidden-filter');
+            visibleCount++;
+        } else {
+            row.classList.add('hidden-filter');
+        }
+    });
+
+    document.getElementById('visibleRecords').textContent = visibleCount;
+    document.getElementById('filterCount').style.display = 'inline-block';
+
+    const badge = document.getElementById('recordCountBadge');
+    if (filterText !== '') {
+        badge.textContent = visibleCount + ' of {{ records|length }} records';
+    } else {
+        badge.textContent = '{{ records|length }} records';
+    }
+}
+
+function clearFilter() {
+    document.getElementById('filterInput').value = '';
+    document.getElementById('filterColumn').value = 'all';
+    applyFilter();
+    document.getElementById('filterInput').focus();
+}
+
+// ─── Toggle Table Visibility ───
+function toggleTable() {
+    const wrapper = document.getElementById('tableBodyWrapper');
+    const btn = document.getElementById('tableToggleBtn');
+    const btnText = btn.querySelector('.btn-text');
+
+    tableVisible = !tableVisible;
+    if (tableVisible) {
+        wrapper.classList.remove('hidden');
+        btnText.textContent = 'Toggle';
+        btn.classList.remove('active');
+    } else {
+        wrapper.classList.add('hidden');
+        btnText.textContent = 'Toggle';
+        btn.classList.add('active');
+    }
+}
+
+// ─── Custom Toast Notification ───
+function showToast(message) {
+    const toast = document.getElementById('customToast');
+    const toastMsg = document.getElementById('toastMessage');
+    toastMsg.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+// ─── NEW FUNCTION: Ask for location before saving CSV ───
+async function saveCsvWithDialog() {
+    const exportUrl = "{{ url_for('export_csv') }}";
+
+    try {
+        const response = await fetch(exportUrl);
+        if (!response.ok) throw new Error("Failed to generate CSV");
+        const blob = await response.blob();
+
+        if ('showSaveFilePicker' in window) {
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: 'collection_records.csv',
+                    types: [{ description: 'CSV File', accept: { 'text/csv': ['.csv'] } }]
+                });
+                const writable = await handle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+                showToast("CSV saved successfully!");
+                return;
+            } catch (err) {
+                if (err.name === 'AbortError') return;
+            }
+        }
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'collection_records.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+    } catch (error) {
+        showToast("Error exporting CSV: " + error.message);
+    }
+}
+
+// ─── Custom Modal Functions ───
+function openCustomModal(recordId) {
+    if (!recordId) return;
+    var confirmBtn = document.getElementById('customConfirmDeleteBtn');
+    var deleteUrl = "{{ url_for('delete_record', record_id=0) }}".replace('0', recordId);
+    confirmBtn.href = deleteUrl;
+
+    var modal = document.getElementById('customModal');
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCustomModal() {
+    var modal = document.getElementById('customModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    document.getElementById('customConfirmDeleteBtn').href = '#';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    applyFilter();
+    var modal = document.getElementById('customModal');
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) closeCustomModal();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.classList.contains('active')) closeCustomModal();
+    });
+    setTimeout(function() {
+        document.querySelectorAll('.alert').forEach(function(alert) {
+            if (alert.classList.contains('alert-success') || alert.classList.contains('alert-danger')) {
+                alert.style.transition = 'opacity 0.5s';
+                alert.style.opacity = '0';
+                setTimeout(function() { alert.remove(); }, 500);
+            }
+        });
+    }, 5000);
+});
+</script>
+{% endblock %}
